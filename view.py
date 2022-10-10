@@ -1,3 +1,4 @@
+from re import S
 from sqlalchemy import create_engine
 import pymysql.connections
 import pymysql as mdb
@@ -596,36 +597,60 @@ class View(tk.Tk):
     def db_connect(self):
 
         try:
-            db = mdb.connect('127.0.0.1', 'root', '', 'chemistry')
+
+            db_connection = mdb.connect(host='127.0.0.1',
+                             user='root',
+                             password='',
+                             database='chemistry')
+
             self.label.configure(text="Connected Successfully")
 
         except mdb.Error as e:
             self.label.configure(text="Not Successfully Connected")
 
     def get_user_experiments(self, v):
-        print((list(self.dict_a.keys())[list(self.dict_a.values()).index(v)]))
         wanted_user_id = (list(self.dict_a.keys())[
                           list(self.dict_a.values()).index(v)])
         self.experiment_list = []
+        self.experimenter_id_list = []
         val_list = ["None"]
 
         experiments = my_conn.execute(
             f"SELECT * FROM experiments_experiment WHERE user_id={wanted_user_id}")
         for ds in experiments:
             self.experiment_list.append(ds[3])
-        self.show_user_experiments(self.experiment_list)
+            self.experimenter_id_list.append(ds[0])
+        
+        self.show_user_experiments( self.experimenter_id_list,self.experiment_list)
 
-    def show_user_experiments(self, list):
+    def show_user_experiments(self, list,primary_id_list):
         try:
             self.Experiment.destroy()
         except:
             pass
+        
+        self.dict_id_list = dict(
+            zip(list, primary_id_list))
         val_list = ["None"]
         default_value = tk.StringVar()
         default_value.set(val_list[0])
         self.Experiment = tk.OptionMenu(
-            self.Upload_Screen, default_value, *list)
+            self.Upload_Screen, default_value, *self.dict_id_list.values(),command=self.get_experiment_pk_for_data)
         self.Experiment.grid()
+
+    def get_experiment_pk_for_data(self,v):
+        wanted_user_id = (list(self.dict_id_list.keys())[
+                          list(self.dict_id_list.values()).index(v)])
+
+        pk_for_measurement_data = wanted_user_id
+        print(pk_for_measurement_data)
+        
+        set = my_conn.execute(f"SELECT * FROM experiments_experiment WHERE id={pk_for_measurement_data}")
+
+
+        for ds in set:
+            self.pk = ds[0]
+        return
 
     def _create_experiment_upload_screen(self):
 
@@ -681,7 +706,7 @@ class View(tk.Tk):
         upload_button.grid()
 
     def csv_to_array(self):
-        pk = 1
+
 
         f = open(self.filename)
         data = pd.read_csv(f, encoding='UTF-8')
@@ -691,8 +716,9 @@ class View(tk.Tk):
             lambda row: datetime.timedelta(minutes=row.tres).total_seconds(), axis=1)
         data_conv.rename(columns={'conversion': 'result',
                                   'tres': 'res_time'}, inplace=True)
-        data_conv['measurement_id'] = pk
-        print(len(data_conv))
+        data_conv['measurement_id'] = self.pk
+        
+
 
         print(data_conv)
 
@@ -704,7 +730,6 @@ class View(tk.Tk):
     def upload(self):
         self.csv_to_array()
 
-        pass
 
     def browseFiles(self):
         self.f_types = [('CSV files', "*.csv"), ('All', "*.*")]
