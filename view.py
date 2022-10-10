@@ -1,22 +1,24 @@
-from email.policy import default
-from gc import callbacks
-import imp
-import tkinter
-import tkinter as tk
-from tkinter import ttk
+from sqlalchemy import create_engine
+import pymysql.connections
+import pymysql as mdb
+import os as a
+from tkinter import filedialog
+from code_extra.log_method import setup_logger
+import pandas as pd
+from code_extra.Constants import SETUP_DEFAULT_VALUES_NMR, FONTS, TIMESWEEP_PARAMETERS, FOLDERS
 from code_extra.defining_folder import defining_communication_folder, defining_PsswinFolder, defining_NMRFolder, \
     SearchExperimentFolder
-from code_extra.Constants import SETUP_DEFAULT_VALUES_NMR, FONTS, TIMESWEEP_PARAMETERS, FOLDERS
-import pandas as pd
-from code_extra.log_method import setup_logger
-from tkinter import filedialog
-import os as a
-import pymysql as mdb
-import pymysql.connections
+from tkinter import ttk
+import tkinter as tk
+import tkinter
+import datetime
+from email.policy import default
+from gc import callbacks
+import pymysql
 
+pymysql.install_as_MySQLdb()
 
-#
-# my_conn = create_engine("mysql+mysqldb://root@localhost/chemistry")
+my_conn = create_engine("mysql+mysqldb://root@localhost/chemistry")
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -142,7 +144,8 @@ class View(tk.Tk):
                                                          pady=3,
                                                          padx=3)
         self.NMRGPC_timesweep_parameter_frame.grid(row=3, sticky="ew")
-        self.NMRGPC_timesweep_confirm_frame = tk.Frame(self.tab_NMRGPC_Timesweeps, bg='gray', width=1000, height=50, pady=10,
+        self.NMRGPC_timesweep_confirm_frame = tk.Frame(self.tab_NMRGPC_Timesweeps, bg='gray', width=1000, height=50,
+                                                       pady=10,
                                                        padx=10)
         self.NMRGPC_timesweep_confirm_frame.grid(row=4, sticky="ew")
 
@@ -153,11 +156,11 @@ class View(tk.Tk):
         NMRGPC_timesweep_header.grid()
 
         # Make-Up NMRGPC_timesweep_picture_frame in Timsweep Tab
-        # picture_timesweep = tk.PhotoImage(
-        #     file="Pictures/Timesweeps_pictureFrame.png")
-        # LabelPicture = tk.Label(
-        #     master=NMRGPC_timesweep_picture_frame, image=picture_timesweep, bg='white')
-        # LabelPicture.grid(column=2)
+        picture_timesweep = tk.PhotoImage(
+            file='Pictures/Timesweeps_pictureFrame.png')
+        LabelPicture = tk.Label(
+            master=NMRGPC_timesweep_picture_frame, image=picture_timesweep, bg='white')
+        LabelPicture.grid(column=2)
 
         # Make-Up Parameter_frame_timesweep in Timesweep Tab
         NMRGPC_all_ts_info = []  # list where all the timesweeps will be saved
@@ -186,13 +189,15 @@ class View(tk.Tk):
                             width=5, font=FONTS['FONT_ENTRY'])
         ts_to_en.grid(row=2, column=4)
 
-        insert_ts_btm = tk.Button(self.NMRGPC_timesweep_parameter_frame, text='Add', command=lambda timesweep_to=ts_to_en,
+        insert_ts_btm = tk.Button(self.NMRGPC_timesweep_parameter_frame, text='Add',
+                                  command=lambda timesweep_to=ts_to_en,
                                   timesweep_from=self.ts_from_en: self.controller.add_timesweep(
                                       timesweep_to, timesweep_from),
                                   font=FONTS['FONT_BOTTON'])
         insert_ts_btm.grid(row=3, column=2)
 
-        delete_ts_btm = tk.Button(self.NMRGPC_timesweep_parameter_frame, text='Delete', command=self.controller.delete_timesweep,
+        delete_ts_btm = tk.Button(self.NMRGPC_timesweep_parameter_frame, text='Delete',
+                                  command=self.controller.delete_timesweep,
                                   font=FONTS['FONT_BOTTON'])
         delete_ts_btm.grid(row=3, column=3)
 
@@ -213,7 +218,6 @@ class View(tk.Tk):
 
         # Creates 'List of Timesweeps'
         for i, ts_info in enumerate(self.NMRGPC_all_ts_info):
-
             ts_info[0] = tk.Label(self.NMRGPC_timesweep_parameter_frame, text=ts_info[1], bg='gray', width=90,
                                   font=FONTS['FONT_SMALL'], anchor='w')
 
@@ -222,7 +226,8 @@ class View(tk.Tk):
             entryText = tk.DoubleVar()
             entryText.set(self.NMRGPC_all_ts_info[-1][-1])
             logger.debug(
-                'This is the to_minutes varialbe of the last entred timesweep : {}'.format(self.NMRGPC_all_ts_info[-1][-1]))
+                'This is the to_minutes varialbe of the last entred timesweep : {}'.format(
+                    self.NMRGPC_all_ts_info[-1][-1]))
             self.ts_from_en.configure(textvariable=entryText, state='readonly')
 
     def temp(self):
@@ -340,7 +345,8 @@ class View(tk.Tk):
         comfolder = tk.Label(Welcome_Option_frame, textvariable=comfolder_path)
         comfolder.grid(row=4, column=0, columnspan=2)
         comfolder_btn = tk.Button(Welcome_Option_frame, text="Browse", command=lambda path=comfolder_path,
-                                  folder_type="COMMUNICATION": self.controller.change_file_path(path, folder_type))
+                                  folder_type="COMMUNICATION": self.controller.change_file_path(
+                                      path, folder_type))
         comfolder_btn.grid(row=5, column=0)
 
         NMRmainfolder_label = tk.Label(
@@ -353,7 +359,9 @@ class View(tk.Tk):
         NMRmainfolder.grid(row=7, column=0, columnspan=2)
 
         NMRmainfolder_btn = ttk.Button(Welcome_Option_frame, text="Browse",
-                                       command=lambda path=NMRmainfolder_path, folder_type="NMR": self.controller.change_file_path(path, folder_type))
+                                       command=lambda path=NMRmainfolder_path,
+                                       folder_type="NMR": self.controller.change_file_path(path,
+                                                                                           folder_type))
         NMRmainfolder_btn.grid(row=8, column=0)
 
         Psswinmainfolder_label = tk.Label(
@@ -365,7 +373,9 @@ class View(tk.Tk):
             Welcome_Option_frame, textvariable=Psswinmainfolder_path)
         Psswinmainfolder.grid(row=10, column=0, columnspan=2)
         Psswinmainfolder_btn = ttk.Button(Welcome_Option_frame, text="Browse",
-                                          command=lambda path=Psswinmainfolder_path, folder_type="GPC": self.controller.change_file_path(path, folder_type))
+                                          command=lambda path=Psswinmainfolder_path,
+                                          folder_type="GPC": self.controller.change_file_path(path,
+                                                                                              folder_type))
         Psswinmainfolder_btn.grid(row=11, column=0)
 
         labviewscript_info = ttk.Label(
@@ -399,7 +409,7 @@ class View(tk.Tk):
         entry1 = TIMESWEEP_PARAMETERS.iloc[0]
         stabili = ((entry1['Volume'] * entry1['StabilisationTime']))
         allDvs = (((entry1['DeadVolume1'] + entry1['DeadVolume2'] +
-                  entry1['DeadVolume3']) * int(scan_numbers.shape[0])))
+                    entry1['DeadVolume3']) * int(scan_numbers.shape[0])))
         ts_number = int(scan_numbers.shape[0])
         totalvolume = stabili + (ts_number * allDvs)
 
@@ -411,7 +421,9 @@ class View(tk.Tk):
                              text='Total NMR scans:         {}'.format(round(total_scan, 0)), width=90, bg='gray',
                              anchor='w')
         summary_2.grid(row=2, column=0)
-        summary_3 = tk.Label(self.NMRGPC_timesweep_confirm_frame, text='Total GPC samples:       {}'.format(round(total_gpc, 0)),
+        summary_3 = tk.Label(self.NMRGPC_timesweep_confirm_frame,
+                             text='Total GPC samples:       {}'.format(
+                                 round(total_gpc, 0)),
                              width=90, bg='gray', anchor='w')
         summary_3.grid(row=3, column=0)
         summary_4 = tk.Label(self.NMRGPC_timesweep_confirm_frame,
@@ -433,8 +445,10 @@ class View(tk.Tk):
         name_window_conv.grid()
         self.Conversion_option_NMRGPC = tk.StringVar()
 
-        self.IS_radio_NMRGPC = tk.Radiobutton(self.tab_NMRGPC_Conversion, text="Internal Standard", font=FONTS['FONT_ENTRY'],
-                                              variable=self.Conversion_option_NMRGPC, value="Internal Standard", command=self.select_internal_standard)
+        self.IS_radio_NMRGPC = tk.Radiobutton(self.tab_NMRGPC_Conversion, text="Internal Standard",
+                                              font=FONTS['FONT_ENTRY'],
+                                              variable=self.Conversion_option_NMRGPC, value="Internal Standard",
+                                              command=self.select_internal_standard)
         self.IS_radio_NMRGPC.grid()
         self.mol_monomerLabel_NMRGPC = tk.Label(
             self.tab_NMRGPC_Conversion, text="Monomer initial (mol)")
@@ -449,12 +463,14 @@ class View(tk.Tk):
         self.mol_internal_standardEntry_NMRGPC.grid()
 
         monomer_radio_NMRGPC = tk.Radiobutton(self.tab_NMRGPC_Conversion, text="Monomer", font=FONTS['FONT_ENTRY'],
-                                              variable=self.Conversion_option_NMRGPC, value="Monomer", command=self.select_monomer)
+                                              variable=self.Conversion_option_NMRGPC, value="Monomer",
+                                              command=self.select_monomer)
         monomer_radio_NMRGPC.grid()
 
         solvent_radio_NMRGPC = tk.Radiobutton(self.tab_NMRGPC_Conversion, text="Solvent (Butyl Acetate)",
                                               font=FONTS[
-                                                  'FONT_ENTRY'], variable=self.Conversion_option_NMRGPC, value="Solvent (Butyl Acetate)",
+                                                  'FONT_ENTRY'], variable=self.Conversion_option_NMRGPC,
+                                              value="Solvent (Butyl Acetate)",
                                               command=self.select_solvent)
         solvent_radio_NMRGPC.grid()
 
@@ -466,7 +482,11 @@ class View(tk.Tk):
         self.Conversion_Label_NMRGPC.grid(row=0, column=1, columnspan=3)
 
         confirm_conv_btm_NMRGPC = tk.Button(Conversion_info_frame_NMRGPC, text='Confirm', height=3, width=15,
-                                            command=lambda conversion_option_chosen=self.Conversion_option_NMRGPC, field_entries=[self.mol_monomerEntry_NMRGPC, self.mol_internal_standardEntry_NMRGPC]: self.controller.confirm_conversion(conversion_option_chosen.get(), field_entries), font=FONTS['FONT_BOTTON'])
+                                            command=lambda conversion_option_chosen=self.Conversion_option_NMRGPC,
+                                            field_entries=[self.mol_monomerEntry_NMRGPC,
+                                                           self.mol_internal_standardEntry_NMRGPC]: self.controller.confirm_conversion(
+                                                conversion_option_chosen.get(), field_entries),
+                                            font=FONTS['FONT_BOTTON'])
         confirm_conv_btm_NMRGPC.grid(row=1, column=2, rowspan=3)
 
     def select_internal_standard(self):
@@ -523,11 +543,11 @@ class View(tk.Tk):
         name_window.grid()
 
         # Make-Up Picture_frame
-        # self.NMRGPC_picure_setup = tkinter.PhotoImage(
-        #     file='None')
-        # NMRGPC_LabelPicture = tk.Label(
-        #     self.NMRGPC_setup_picture_frame, image=self.NMRGPC_picure_setup, bg='black')
-        # NMRGPC_LabelPicture.grid()
+        self.NMRGPC_picure_setup = tk.PhotoImage(
+            file='Pictures/NMRGPCsetup.png')
+        NMRGPC_LabelPicture = tk.Label(
+            self.NMRGPC_setup_picture_frame, image=self.NMRGPC_picure_setup, bg='black')
+        NMRGPC_LabelPicture.grid()
         for i, entry_values in enumerate(SETUP_DEFAULT_VALUES_NMR):
             parameter = tk.Label(self.NMRGPC_setup_parameter_frame, text=entry_values[2],
                                  width=30)  # parameter name in column 0
@@ -581,40 +601,31 @@ class View(tk.Tk):
 
         except mdb.Error as e:
             self.label.configure(text="Not Successfully Connected")
-    
+
     def get_user_experiments(self, v):
-        print((list(self.dict_a.keys())[list(self.dict_a.values()).index(v)]) )
-        wanted_user_id = (list(self.dict_a.keys())[list(self.dict_a.values()).index(v)]) 
+        print((list(self.dict_a.keys())[list(self.dict_a.values()).index(v)]))
+        wanted_user_id = (list(self.dict_a.keys())[
+                          list(self.dict_a.values()).index(v)])
         self.experiment_list = []
         val_list = ["None"]
 
-        # experiments = my_conn.execute(f"SELECT * FROM experiments_experiment WHERE user_id={wanted_user_id}")
-        # for ds in experiments:
-        #     self.experiment_list.append(ds[3])
-        #
-        # try:
-        #     self.Experiment.destroy()
-        # except:
-        #     pass
-        
+        experiments = my_conn.execute(
+            f"SELECT * FROM experiments_experiment WHERE user_id={wanted_user_id}")
+        for ds in experiments:
+            self.experiment_list.append(ds[3])
+        self.show_user_experiments(self.experiment_list)
+
+    def show_user_experiments(self, list):
+        try:
+            self.Experiment.destroy()
+        except:
+            pass
+        val_list = ["None"]
         default_value = tk.StringVar()
         default_value.set(val_list[0])
         self.Experiment = tk.OptionMenu(
-            self.Upload_Screen, default_value ,*self.experiment_list)
+            self.Upload_Screen, default_value, *list)
         self.Experiment.grid()
-
-
-
-
-
-
-        
-
-
-
-
-
-
 
     def _create_experiment_upload_screen(self):
 
@@ -626,48 +637,27 @@ class View(tk.Tk):
         self.label.grid()
 
         self.Upload_Screen = tk.Frame(self.upload_screen, bg='white', width=1000, height=50, pady=3,
-                                 padx=400)
+                                      padx=400)
         self.Upload_Screen.grid()
-        
 
         list_of_experimenters = []
         list_of_experimenter_ids = []
 
-        # re_set = my_conn.execute("SELECT * FROM users_user")
-        # for ds in re_set:
-        #     list_of_experimenters.append(ds[4])
-        #     list_of_experimenter_ids.append(ds[0])
-        # self.dict_a = dict(zip(list_of_experimenter_ids,list_of_experimenters))
-
-
+        re_set = my_conn.execute("SELECT * FROM users_user")
+        for ds in re_set:
+            list_of_experimenters.append(ds[4])
+            list_of_experimenter_ids.append(ds[0])
+        self.dict_a = dict(
+            zip(list_of_experimenter_ids, list_of_experimenters))
 
         variable = tk.StringVar()
         variable.set(list_of_experimenters[0])
 
-
-
         self.Experimenter = tk.OptionMenu(
-            self.Upload_Screen,variable,*self.dict_a.values(),command=self.get_user_experiments)
+            self.Upload_Screen, variable, *self.dict_a.values(), command=self.get_user_experiments)
         self.Experimenter.grid()
 
         self.experiment_list = ["None"]
-        a = tk.StringVar()
-
-
-
-
-
-
-
-
-    
-
-        variable = tk.StringVar()
-        variable.set("one")  # default value
-
-        file_upload = tk.OptionMenu(
-            self.Upload_Screen, variable, "one", "two", "three")
-        file_upload.grid()
 
         self.label_file_explorer = tk.Label(self.Upload_Screen,
                                             text="File Explorer using Tkinter")
@@ -679,28 +669,62 @@ class View(tk.Tk):
         button_exit = ttk.Button(self.Upload_Screen,
                                  text="Exit",
                                  command=None)
+
+        upload_button = ttk.Button(self.Upload_Screen,
+                                   text="Upload",
+                                   command=self.upload)
         self.label_file_explorer.grid()
 
         button_explore.grid()
 
         button_exit.grid()
+        upload_button.grid()
+
+    def csv_to_array(self):
+        pk = 1
+
+        f = open(self.filename)
+        data = pd.read_csv(f, encoding='UTF-8')
+
+        data_conv = data[['conversion', 'tres']]
+        data_conv['tres'] = data_conv.apply(
+            lambda row: datetime.timedelta(minutes=row.tres).total_seconds(), axis=1)
+        data_conv.rename(columns={'conversion': 'result',
+                                  'tres': 'res_time'}, inplace=True)
+        data_conv['measurement_id'] = pk
+        print(len(data_conv))
+
+        print(data_conv)
+
+        data_conv.to_sql('measurements_data', my_conn,
+                         if_exists='append', index=False, method='multi')
+
+        return data_conv
+
+    def upload(self):
+        self.csv_to_array()
+
+        pass
 
     def browseFiles(self):
-        f_types = [('CSV files', "*.csv"), ('All', "*.*")]
-        filename = filedialog.askopenfilename(filetypes=f_types)
+        self.f_types = [('CSV files', "*.csv"), ('All', "*.*")]
+        self.filename = filedialog.askopenfilename(filetypes=self.f_types)
 
         # Change label contents
-        self.label_file_explorer.configure(text="File Opened: " + filename)
+        self.label_file_explorer.configure(
+            text="File Opened: " + self.filename)
 
     def _make_NMRGPC_initialisation_tab(self):
         # Create Main frame of init Tab
         NMRGPC_top_frame_init = tk.Frame(
             self.tab_NMRGPC_Initialisation, bg='white', width=1000, height=50, pady=3, padx=400)
         NMRGPC_top_frame_init.grid(row=0, sticky="ew")
-        NMRGPC_picture_frame_init = tk.Frame(self.tab_NMRGPC_Initialisation, bg='white', width=1000, height=300, padx=175,
+        NMRGPC_picture_frame_init = tk.Frame(self.tab_NMRGPC_Initialisation, bg='white', width=1000, height=300,
+                                             padx=175,
                                              pady=3)
         NMRGPC_picture_frame_init.grid(row=1, sticky="nsew")
-        NMRGPC_parameter_frame_init = tk.Frame(self.tab_NMRGPC_Initialisation, bg='gray', width=1000, height=350, pady=3,
+        NMRGPC_parameter_frame_init = tk.Frame(self.tab_NMRGPC_Initialisation, bg='gray', width=1000, height=350,
+                                               pady=3,
                                                padx=3)
         NMRGPC_parameter_frame_init.grid(row=3, sticky="ew")
         NMRGPC_btm_frame_init = tk.Frame(
@@ -729,9 +753,12 @@ class View(tk.Tk):
                                 text='LABVIEW', font=FONTS['FONT_NORMAL'], bg='gray')
         labelLabview.grid(row=5, column=0, columnspan=2)
         self.confirmLabview = tk.Button(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'],
-                                        command=lambda labelLabview_view=labelLabview: self.controller.confirm_labview_com(labelLabview_view), state='disabled', width=6)
+                                        command=lambda
+                                        labelLabview_view=labelLabview: self.controller.confirm_labview_com(
+            labelLabview_view), state='disabled', width=6)
         self.confirmLabview.grid(row=5, column=3)
-        self.HelpLabview = tk.Button(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'], state='disabled',
+        self.HelpLabview = tk.Button(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'],
+                                     state='disabled',
                                      command=self.temp, width=6)
         self.HelpLabview.grid(row=5, column=4)
         labelLabviewInfo = tk.Label(
@@ -754,10 +781,12 @@ class View(tk.Tk):
         self.labelSpinsolve = tk.Label(
             NMRGPC_parameter_frame_init, text='Spinsolve', font=FONTS['FONT_NORMAL'], bg='gray')
         self.labelSpinsolve.grid(row=9, column=0, columnspan=2)
-        self.confirmSpinsolve = tk.Button(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'], state='disabled',
+        self.confirmSpinsolve = tk.Button(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'],
+                                          state='disabled',
                                           command=self.temp, width=6)
         self.confirmSpinsolve.grid(row=9, column=3)
-        self.HelpSpinsolve = tk.Button(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'], state='disabled',
+        self.HelpSpinsolve = tk.Button(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'],
+                                       state='disabled',
                                        command=self.temp, width=6)
         self.HelpSpinsolve.grid(row=9, column=4)
         self.labelSpinsolveInfo = tk.Label(
@@ -767,10 +796,12 @@ class View(tk.Tk):
         self.labelEmail = tk.Label(
             NMRGPC_parameter_frame_init, text='Email', font=FONTS['FONT_NORMAL'], bg='gray')
         self.labelEmail.grid(row=11, column=0, columnspan=1)
-        self.entryEmail = tk.Entry(NMRGPC_parameter_frame_init, text='Email', font=FONTS['FONT_SMALL'], state='readonly',
+        self.entryEmail = tk.Entry(NMRGPC_parameter_frame_init, text='Email', font=FONTS['FONT_SMALL'],
+                                   state='readonly',
                                    width=30)
         self.entryEmail.grid(row=11, column=1, columnspan=1)
-        self.confirmEmail = tk.Button(NMRGPC_parameter_frame_init, text='Confirm', font=FONTS['FONT_BOTTON'], state='disabled',
+        self.confirmEmail = tk.Button(NMRGPC_parameter_frame_init, text='Confirm', font=FONTS['FONT_BOTTON'],
+                                      state='disabled',
                                       command=self.temp, width=6)
         self.confirmEmail.grid(row=11, column=3)
         self.AddEmail = tk.Button(NMRGPC_parameter_frame_init, text='Add', font=FONTS['FONT_BOTTON'], state='disabled',
