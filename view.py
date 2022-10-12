@@ -1,9 +1,11 @@
+from ctypes import alignment
 from re import S
+from turtle import width
 from sqlalchemy import create_engine
 import pymysql.connections
 import pymysql as mdb
 import os as a
-from tkinter import filedialog
+from tkinter import CENTER, filedialog
 from code_extra.log_method import setup_logger
 import pandas as pd
 from code_extra.Constants import SETUP_DEFAULT_VALUES_NMR, FONTS, TIMESWEEP_PARAMETERS, FOLDERS
@@ -16,6 +18,7 @@ import datetime
 from email.policy import default
 from gc import callbacks
 import pymysql
+from datetime import datetime
 
 pymysql.install_as_MySQLdb()
 
@@ -94,6 +97,7 @@ class View(tk.Tk):
         self._make_conversion_screen()
         self._make_NMRGPC_initialisation_tab()
         self._create_experiment_upload_screen()
+        self._end_of_experiment_pop_up()
 
     def main(self):
         self.tab.select(self.welcome_tab)
@@ -113,6 +117,7 @@ class View(tk.Tk):
         self.tab_NMRGPC_Conversion = ttk.Frame(self.tab)
         self.tab_NMRGPC_Initialisation = ttk.Frame(self.tab)
         self.upload_screen = ttk.Frame(self.tab)
+        self.upload_pop_up = ttk.Frame(self.tab)
 
         self.tab.add(self.tab_NMRGPC_Timesweeps, text='Timesweeps')
 
@@ -122,6 +127,7 @@ class View(tk.Tk):
         self.tab.add(self.setup, text="Setup")
         self.tab.add(self.tab_NMRGPC_Initialisation, text="NMR GPC Init")
         self.tab.add(self.upload_screen, text="Upload Results")
+        self.tab.add(self.upload_pop_up, text="Upload Results Pop up")
         self.tab_NMR_Setup = ttk.Frame(self.tab)
         self.tab_NMR_Timesweeps = ttk.Frame(self.tab)
         self.tab_NMR_Conversion = ttk.Frame(self.tab)
@@ -599,9 +605,9 @@ class View(tk.Tk):
         try:
 
             db_connection = mdb.connect(host='127.0.0.1',
-                             user='root',
-                             password='',
-                             database='chemistry')
+                                        user='root',
+                                        password='',
+                                        database='chemistry')
 
             self.label.configure(text="Connected Successfully")
 
@@ -609,44 +615,45 @@ class View(tk.Tk):
             self.label.configure(text="Not Successfully Connected")
 
     def get_user_experiments(self, v):
-        wanted_user_id = (list(self.dict_a.keys())[
-                          list(self.dict_a.values()).index(v)])
+        self.wanted_user_id = (list(self.dict_a.keys())[
+            list(self.dict_a.values()).index(v)])
         self.experiment_list = []
         self.experimenter_id_list = []
         val_list = ["None"]
 
         experiments = my_conn.execute(
-            f"SELECT * FROM experiments_experiment WHERE user_id={wanted_user_id}")
+            f"SELECT * FROM experiments_experiment WHERE user_id={self.wanted_user_id}")
         for ds in experiments:
             self.experiment_list.append(ds[3])
             self.experimenter_id_list.append(ds[0])
-        
-        self.show_user_experiments( self.experimenter_id_list,self.experiment_list)
 
-    def show_user_experiments(self, list,primary_id_list):
+        self.show_user_experiments(
+            self.experimenter_id_list, self.experiment_list)
+
+    def show_user_experiments(self, list, primary_id_list):
         try:
             self.Experiment.destroy()
         except:
             pass
-        
+
         self.dict_id_list = dict(
             zip(list, primary_id_list))
         val_list = ["None"]
         default_value = tk.StringVar()
         default_value.set(val_list[0])
         self.Experiment = tk.OptionMenu(
-            self.Upload_Screen, default_value, *self.dict_id_list.values(),command=self.get_experiment_pk_for_data)
+            self.Upload_Screen, default_value, *self.dict_id_list.values(), command=self.get_experiment_pk_for_data)
         self.Experiment.grid()
 
-    def get_experiment_pk_for_data(self,v):
+    def get_experiment_pk_for_data(self, v):
         wanted_user_id = (list(self.dict_id_list.keys())[
                           list(self.dict_id_list.values()).index(v)])
 
         pk_for_measurement_data = wanted_user_id
         print(pk_for_measurement_data)
-        
-        set = my_conn.execute(f"SELECT * FROM experiments_experiment WHERE id={pk_for_measurement_data}")
 
+        set = my_conn.execute(
+            f"SELECT * FROM experiments_experiment WHERE id={pk_for_measurement_data}")
 
         for ds in set:
             self.pk = ds[0]
@@ -707,7 +714,6 @@ class View(tk.Tk):
 
     def csv_to_array(self):
 
-
         f = open(self.filename)
         data = pd.read_csv(f, encoding='UTF-8')
 
@@ -717,8 +723,6 @@ class View(tk.Tk):
         data_conv.rename(columns={'conversion': 'result',
                                   'tres': 'res_time'}, inplace=True)
         data_conv['measurement_id'] = self.pk
-        
-
 
         print(data_conv)
 
@@ -729,7 +733,6 @@ class View(tk.Tk):
 
     def upload(self):
         self.csv_to_array()
-
 
     def browseFiles(self):
         self.f_types = [('CSV files', "*.csv"), ('All', "*.*")]
@@ -835,3 +838,133 @@ class View(tk.Tk):
         self.labelEmailinfo = tk.Label(
             NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'], bg='gray')
         self.labelEmailinfo.grid(row=12, column=0, columnspan=2)
+
+    def _end_of_experiment_pop_up(self):
+
+        options = tk.StringVar(self.upload_pop_up)
+        options.set("Choose")  # default value
+
+        user_label = tk.Label(self.upload_pop_up,  text='User',
+                              font=('Helvetica', 16), width=30, anchor="c")
+        user_label.grid(row=0, column=0, columnspan=4)
+
+        user_options_menu = tk.OptionMenu(
+            self.upload_pop_up, options, *self.dict_a.values(), command=self.get_user_experiments)
+        user_options_menu.configure(width=30)
+        user_options_menu.grid(row=1, column=0)
+
+        self.name_label = tk.Label(self.upload_pop_up,  text='Experiment Name',
+                                   font=('Helvetica', 16), width=30, anchor="c")
+        self.name_label.grid(row=2, column=0, columnspan=4)
+
+        self.experiment_name_en = tk.Entry(self.upload_pop_up,
+                                           font=FONTS['FONT_ENTRY'], width=30)
+        self.experiment_name_en.grid(row=3, column=0)
+
+        self.temperature_label = tk.Label(self.upload_pop_up,  text='Temperature',
+                                          font=('Helvetica', 16), width=30, anchor="c")
+        self.temperature_label.grid(row=4, column=0, columnspan=4)
+
+        self.temperature_en = tk.Entry(self.upload_pop_up,
+                                       font=FONTS['FONT_ENTRY'], width=30)
+        self.temperature_en.grid(row=5, column=0)
+        self.volume_label = tk.Label(self.upload_pop_up,  text='Volume',
+                                     font=('Helvetica', 16), width=30, anchor="c")
+        self.volume_label.grid(row=6, column=0, columnspan=4)
+
+        self.volume_en = tk.Entry(self.upload_pop_up,
+                                  font=FONTS['FONT_ENTRY'], width=30)
+        self.volume_en.grid(row=7, column=0)
+
+        upload_button = tk.Button(self.upload_pop_up,  text='Add Record', width=10,
+                                  command=lambda: self.add_experiment_data())
+        upload_button.grid(row=8, column=0)
+        self.my_str = tk.StringVar()
+        l5 = tk.Label(self.upload_pop_up,  textvariable=self.my_str, width=10)
+        l5.grid(row=9, column=0)
+        self.my_str.set("Output")
+
+    def add_experiment_data(self):
+
+        flag_validation = True
+        date = datetime.today()
+
+        time = datetime.now()
+        exp_name = self.experiment_name_en.get()
+        temperature = self.temperature_en.get()
+        volume = self.volume_en.get()
+
+        print(f"date: {date}, time: {time} , name: {exp_name}, temperature: {temperature}, volume: {volume}, user_id: {self.wanted_user_id}")
+
+        if (len(exp_name)) < 2:
+            flag_validation = False
+        try:
+            temp_val = int(temperature)  # checking mark as integer
+            volume_val = int(volume)
+        except:
+            flag_validation = False
+
+        if (flag_validation):
+
+            query = "INSERT INTO  `experiments_experiment` (`date` ,`time` ,`name` ,`temperature`, total_volume,user_id) \
+                VALUES(%s,%s,%s,%s,%s,%s)"
+            my_data = (date, time, exp_name,
+                       temperature, volume, self.wanted_user_id)
+            id = my_conn.execute(query, my_data)
+
+        else:
+            self.temperature_label.config(fg='red')   # foreground color
+            self.temperature_label.config(bg='yellow')  # background color
+            self.volume_label.config(fg='red')   # foreground color
+            self.volume_label.config(bg='yellow')  # background color
+            self.name_label.config(fg='red')
+            self.name_label.config(bg='yellow')
+            self.my_str.set("check inputs.")
+        self.go_to_tab()
+
+        # def _end_of_experiment_pop_up_old(self):
+
+    #     end_of_experiment_pop_up = tk.Frame(
+    #         self.upload_pop_up, bg='white', width=1000, height=1000, pady=3, padx=400)
+    #     end_of_experiment_pop_up.grid(row=0, sticky="ew")
+
+    #     user_label = tk.Label(end_of_experiment_pop_up, text='User', bg='gray', width=15,
+    #                           font=FONTS['FONT_NORMAL'])
+    #     user_label.grid(row=3, column=0)
+
+    #     default_user = tk.StringVar()
+    #     default_user.set('Milad')
+
+    #     user_options_menu = tk.OptionMenu(
+    #         end_of_experiment_pop_up, default_user, *self.dict_a.values(), command=self.get_user_experiments)
+    #     user_options_menu.configure(width=30)
+    #     user_options_menu.grid(row=4, column=0)
+
+    #     experiment_name_label = tk.Label(end_of_experiment_pop_up, text='Experiment Name', bg='gray', width=15,
+    #                                      font=FONTS['FONT_NORMAL'])
+    #     experiment_name_label.grid(row=5, column=0)
+
+    #     code_en = tk.Entry(end_of_experiment_pop_up,
+    #                        font=FONTS['FONT_ENTRY'], width=30)
+    #     code_en.grid(row=6, column=0)
+
+    #     temperature_label = tk.Label(end_of_experiment_pop_up, text='Temperature', bg='gray', width=15,
+    #                                  font=FONTS['FONT_NORMAL'])
+    #     temperature_label.grid(row=7, column=0)
+
+    #     temperature_en = tk.Entry(end_of_experiment_pop_up,
+    #                               font=FONTS['FONT_ENTRY'], width=30)
+    #     temperature_en.grid(row=8, column=0)
+
+    #     volume_label = tk.Label(end_of_experiment_pop_up, text='Volume', bg='gray', width=15,
+    #                             font=FONTS['FONT_NORMAL'])
+    #     volume_label.grid(row=7, column=0)
+
+    #     volume_en = tk.Entry(end_of_experiment_pop_up,
+    #                          font=FONTS['FONT_ENTRY'], width=30)
+    #     volume_en.grid(row=8, column=0)
+
+    #     confirm_experiment = tk.Button(end_of_experiment_pop_up, text='Confirm New Experiment', font=FONTS['FONT_BOTTON'],
+
+    #                                    command=self.uplo_experiment, width=6)
+    #     confirm_experiment.grid(row=9, column=0)
