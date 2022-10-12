@@ -1,0 +1,46 @@
+# def _end_of_experiment_pop_up_old(self):
+
+#     end_of_experiment_pop_up = tk.Frame(
+#         self.upload_pop_up, bg='white', width=1000, height=1000, pady=3, padx=400)
+#     end_of_experiment_pop_up.grid(row=0, sticky="ew")
+
+#     user_label = tk.Label(end_of_experiment_pop_up, text='User', bg='gray', width=15,
+#                           font=FONTS['FONT_NORMAL'])
+#     user_label.grid(row=3, column=0)
+
+#     default_user = tk.StringVar()
+#     default_user.set('Milad')
+
+#     user_options_menu = tk.OptionMenu(
+#         end_of_experiment_pop_up, default_user, *self.dict_a.values(), command=self.get_user_experiments)
+#     user_options_menu.configure(width=30)
+#     user_options_menu.grid(row=4, column=0)
+
+#     experiment_name_label = tk.Label(end_of_experiment_pop_up, text='Experiment Name', bg='gray', width=15,
+#                                      font=FONTS['FONT_NORMAL'])
+#     experiment_name_label.grid(row=5, column=0)
+
+#     code_en = tk.Entry(end_of_experiment_pop_up,
+#                        font=FONTS['FONT_ENTRY'], width=30)
+#     code_en.grid(row=6, column=0)
+
+#     temperature_label = tk.Label(end_of_experiment_pop_up, text='Temperature', bg='gray', width=15,
+#                                  font=FONTS['FONT_NORMAL'])
+#     temperature_label.grid(row=7, column=0)
+
+#     temperature_en = tk.Entry(end_of_experiment_pop_up,
+#                               font=FONTS['FONT_ENTRY'], width=30)
+#     temperature_en.grid(row=8, column=0)
+
+#     volume_label = tk.Label(end_of_experiment_pop_up, text='Volume', bg='gray', width=15,
+#                             font=FONTS['FONT_NORMAL'])
+#     volume_label.grid(row=7, column=0)
+
+#     volume_en = tk.Entry(end_of_experiment_pop_up,
+#                          font=FONTS['FONT_ENTRY'], width=30)
+#     volume_en.grid(row=8, column=0)
+
+#     confirm_experiment = tk.Button(end_of_experiment_pop_up, text='Confirm New Experiment', font=FONTS['FONT_BOTTON'],
+
+#                                    command=self.uplo_experiment, width=6)
+#     confirm_experiment.grid(row=9, column=0)
