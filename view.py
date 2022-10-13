@@ -1,10 +1,11 @@
 from ctypes import alignment
 from re import S
 from turtle import width
+from regex import R
 from sqlalchemy import create_engine
 import pymysql.connections
 import pymysql as mdb
-import os as a
+
 from tkinter import CENTER, filedialog
 from code_extra.log_method import setup_logger
 import pandas as pd
@@ -19,6 +20,28 @@ from email.policy import default
 from gc import callbacks
 import pymysql
 from datetime import datetime
+from datetime import timedelta
+import os
+
+from pathlib import Path
+from sys import exec_prefix
+from tkinter import *
+from tkinter import ttk
+from tkinter import filedialog
+import os
+import pandas as pd
+
+from code_extra.log_method import setup_logger
+from code_extra.defining_folder import defining_communication_folder, defining_PsswinFolder, defining_NMRFolder, SearchExperimentFolder
+
+from code_extra.Constants import SETUP_DEFAULT_VALUES_NMR, FONTS, TIMESWEEP_PARAMETERS, FOLDERS
+from code_extra.calculateScans import calculate_scans
+
+from code_extra.precheck import check_files, check_Emailconnection
+from code_extra.start_experiment import starting
+
+
+from code_extra.start_experiment import starting
 
 import mysql.connector
 pymysql.install_as_MySQLdb()
@@ -53,6 +76,8 @@ DATABASES = {
 
 class View(tk.Tk):
     """"""
+    experiment_extra = pd.DataFrame(columns=['code', 'Mainfolder', 'GPCfolder', 'Timesweepfolder',
+                                             'Infofolder', 'Softwarefolder', 'Rawfolder', 'Plotsfolder', 'COMMUNICATION', 'GPC', 'NMR'])
     Labviewscript = 'GPC-NMR Timesweep_GUIversion_version4_lab112_gpcPC.vi'
 
     BUTTON_CAPTIONS = ["NMR", "NMR-GPC",
@@ -100,7 +125,7 @@ class View(tk.Tk):
         self._get_user_names()
         self._make_NMRGPC_initialisation_tab()
         self._create_experiment_upload_screen()
-        self._end_of_experiment_pop_up()
+        self._upload_results_pop_up()
 
     def main(self):
         self.tab.select(self.welcome_tab)
@@ -125,7 +150,7 @@ class View(tk.Tk):
         self.tab.add(self.tab_NMRGPC_Timesweeps, text='Timesweeps')
 
         self.tab.add(self.tab_NMRGPC_Conversion, text="Conversion")
-        self.tab.add(self.tab_overview, text="Experiment")
+
         self.tab.add(self.welcome_tab, text="Welcome")
         self.tab.add(self.setup, text="Setup")
         self.tab.add(self.tab_NMRGPC_Initialisation, text="NMR GPC Init")
@@ -351,7 +376,7 @@ class View(tk.Tk):
             Welcome_Option_frame, text="Communication Folder", font=FONTS['FONT_ENTRY'])
         comfolder_label.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
         comfolder_path = tk.StringVar(value=self.CommunicationMainFolder)
-        print(comfolder_path)
+
         comfolder = tk.Label(Welcome_Option_frame, textvariable=comfolder_path)
         comfolder.grid(row=4, column=0, columnspan=2)
         comfolder_btn = tk.Button(Welcome_Option_frame, text="Browse", command=lambda path=comfolder_path,
@@ -599,101 +624,9 @@ class View(tk.Tk):
 
         # Make-up confirm frame
         confirm_reactorParameters = tk.Button(self.NMRGPC_setup_confirm_frame, text='Confirm', height=3, width=15,
-                                              command=lambda next_tab=self.tab_NMRGPC_Timesweeps: self.go_to_tab(
-                                                  next_tab), font=FONTS['FONT_BOTTON'])
+                                              command=self.Confirm_reactor_parameters, font=FONTS['FONT_BOTTON'])
+
         confirm_reactorParameters.grid()
-
-    def db_connect(self):
-
-        try:
-
-            db_connection = mdb.connect(host='127.0.0.1',
-                                        user='root',
-                                        password='',
-                                        database='chemistry')
-
-            self.label.configure(text="Connected Successfully")
-
-        except mdb.Error as e:
-            self.label.configure(text="Not Successfully Connected")
-
-    def get_user_experiments(self, v):
-        self.wanted_user_id = (list(self.dict_a.keys())[
-            list(self.dict_a.values()).index(v)])
-        self.experiment_list = []
-        self.experimenter_id_list = []
-        val_list = ["None"]
-
-        experiments = my_conn.execute(
-            f"SELECT * FROM experiments_experiment WHERE user_id={self.wanted_user_id}")
-        for ds in experiments:
-            self.experiment_list.append(ds[3])
-            self.experimenter_id_list.append(ds[0])
-
-        self.show_user_experiments(
-            self.experimenter_id_list, self.experiment_list)
-
-    def show_user_experiments(self, list, primary_id_list):
-        try:
-            self.Experiment.destroy()
-        except:
-            pass
-
-        self.dict_id_list = dict(
-            zip(list, primary_id_list))
-        val_list = ["None"]
-        default_value = tk.StringVar()
-        default_value.set(val_list[0])
-        self.Experiment = tk.OptionMenu(
-            self.Upload_Screen, default_value, *self.dict_id_list.values(), command=self.get_experiment_pk_for_data)
-        self.Experiment.grid()
-
-    def get_experiment_pk_for_data(self, v):
-        wanted_user_id = (list(self.dict_id_list.keys())[
-                          list(self.dict_id_list.values()).index(v)])
-
-        pk_for_measurement_data = wanted_user_id
-        print(pk_for_measurement_data)
-
-        set = my_conn.execute(
-            f"SELECT * FROM experiments_experiment WHERE id={pk_for_measurement_data}")
-
-        for ds in set:
-            self.pk = ds[0]
-        return
-
-    def get_created_experiment_id(self):
-        return
-
-    def csv_to_array(self):
-
-        f = open(self.filename)
-        data = pd.read_csv(f, encoding='UTF-8')
-
-        data_conv = data[['conversion', 'tres']]
-        data_conv['tres'] = data_conv.apply(
-            lambda row: datetime.timedelta(minutes=row.tres).total_seconds(), axis=1)
-        data_conv.rename(columns={'conversion': 'result',
-                                  'tres': 'res_time'}, inplace=True)
-        data_conv['measurement_id'] = self.pk
-
-        print(data_conv)
-
-        data_conv.to_sql('measurements_data', my_conn,
-                         if_exists='append', index=False, method='multi')
-
-        return data_conv
-
-    def upload(self):
-        self.csv_to_array()
-
-    def browseFiles(self):
-        self.f_types = [('CSV files', "*.csv"), ('All', "*.*")]
-        self.filename = filedialog.askopenfilename(filetypes=self.f_types)
-
-        # Change label contents
-        self.label_file_explorer.configure(
-            text="File Opened: " + self.filename)
 
     def _make_NMRGPC_initialisation_tab(self):
         # Create Main frame of init Tab
@@ -726,35 +659,33 @@ class View(tk.Tk):
                             font=FONTS['FONT_NORMAL'])
         code_lbl.grid(row=3, column=0)
 
-        code_en = tk.Entry(NMRGPC_parameter_frame_init,
-                           font=FONTS['FONT_ENTRY'], width=30)
-        code_en.grid(row=3, column=1)
+        self.code_en = tk.Entry(NMRGPC_parameter_frame_init,
+                                font=FONTS['FONT_ENTRY'], width=30)
+        self.code_en.grid(row=3, column=1)
 
-        labelLabview = tk.Label(NMRGPC_parameter_frame_init,
-                                text='LABVIEW', font=FONTS['FONT_NORMAL'], bg='gray')
-        labelLabview.grid(row=5, column=0, columnspan=2)
-        self.confirmLabview = tk.Button(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'],
-                                        command=lambda
-                                        labelLabview_view=labelLabview: self.controller.confirm_labview_com(
-            labelLabview_view), state='disabled', width=6)
-        self.confirmLabview.grid(row=5, column=3)
+        self.labelLabview = tk.Label(NMRGPC_parameter_frame_init,
+                                     text='LABVIEW', font=FONTS['FONT_NORMAL'], bg='gray')
+        self.labelLabview.grid(row=5, column=0, columnspan=2)
+        self.confirmlabview = tk.Button(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'],
+                                        command=self.confirmLabview, state='disabled', width=6)
+        self.confirmlabview.grid(row=5, column=3)
         self.HelpLabview = tk.Button(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'],
                                      state='disabled',
-                                     command=self.temp, width=6)
+                                     command=self.HelpLabView, width=6)
         self.HelpLabview.grid(row=5, column=4)
-        labelLabviewInfo = tk.Label(
+        self.labelLabviewInfo = tk.Label(
             NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'], bg='gray')
-        labelLabviewInfo.grid(row=6, column=0, columnspan=2)
+        self.labelLabviewInfo.grid(row=6, column=0, columnspan=2)
 
         self.labelPss = tk.Label(
             NMRGPC_parameter_frame_init, text='PSS', font=FONTS['FONT_NORMAL'], bg='gray')
         self.labelPss.grid(row=7, column=0, columnspan=2)
-        self.confirmPss = tk.Button(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'], state='disabled',
-                                    command=self.temp, width=6)
-        self.confirmPss.grid(row=7, column=3)
-        self.HelpPss = tk.Button(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'], state='disabled',
-                                 command=self.temp, width=6)
-        self.HelpPss.grid(row=7, column=4)
+        self.confirmpss = tk.Button(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'], state='disabled',
+                                    command=self.confirmPss, width=6)
+        self.confirmpss.grid(row=7, column=3)
+        self.Helppss = tk.Button(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'], state='disabled',
+                                 command=self.HelpPss, width=6)
+        self.Helppss.grid(row=7, column=4)
         self.labelPssInfo = tk.Label(
             NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'], bg='gray')
         self.labelPssInfo.grid(row=8, column=0, columnspan=2)
@@ -762,14 +693,14 @@ class View(tk.Tk):
         self.labelSpinsolve = tk.Label(
             NMRGPC_parameter_frame_init, text='Spinsolve', font=FONTS['FONT_NORMAL'], bg='gray')
         self.labelSpinsolve.grid(row=9, column=0, columnspan=2)
-        self.confirmSpinsolve = tk.Button(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'],
+        self.confirmspinsolve = tk.Button(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'],
                                           state='disabled',
-                                          command=self.temp, width=6)
-        self.confirmSpinsolve.grid(row=9, column=3)
-        self.HelpSpinsolve = tk.Button(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'],
+                                          command=self.confirmSpinsolve, width=6)
+        self.confirmspinsolve.grid(row=9, column=3)
+        self.Helpspinsolve = tk.Button(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'],
                                        state='disabled',
-                                       command=self.temp, width=6)
-        self.HelpSpinsolve.grid(row=9, column=4)
+                                       command=self.HelpSpinsolve, width=6)
+        self.Helpspinsolve.grid(row=9, column=4)
         self.labelSpinsolveInfo = tk.Label(
             NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'], bg='gray')
         self.labelSpinsolveInfo.grid(row=10, column=0, columnspan=2)
@@ -783,57 +714,198 @@ class View(tk.Tk):
         self.entryEmail.grid(row=11, column=1, columnspan=1)
         self.confirmEmail = tk.Button(NMRGPC_parameter_frame_init, text='Confirm', font=FONTS['FONT_BOTTON'],
                                       state='disabled',
-                                      command=self.temp, width=6)
+                                      command=self.confirm_emailadress, width=6)
         self.confirmEmail.grid(row=11, column=3)
-        self.AddEmail = tk.Button(NMRGPC_parameter_frame_init, text='Add', font=FONTS['FONT_BOTTON'], state='disabled',
-                                  command=self.temp, width=6)
-        self.AddEmail.grid(row=11, column=4)
+        self.addEmail = tk.Button(NMRGPC_parameter_frame_init, text='Add', font=FONTS['FONT_BOTTON'], state='disabled',
+                                  command=self.AddEmail, width=6)
+        self.addEmail.grid(row=11, column=4)
         self.labelEmailinfo = tk.Label(
             NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'], bg='gray')
         self.labelEmailinfo.grid(row=12, column=0, columnspan=2)
 
-    def _end_of_experiment_pop_up(self):
+        self.NMRGPC_confirm_code = tk.Button(NMRGPC_parameter_frame_init, text='OK',
+                                             font=FONTS['FONT_BOTTON'], command=self.confirm_code, width=6)
+        self.NMRGPC_confirm_code.grid(row=4, column=1, columnspan=2)
 
-        options = tk.StringVar(self.upload_pop_up)
+        self.start_btn = Button(NMRGPC_btm_frame_init, text='Start',
+                                font=FONTS['FONT_HEADER_BOLD'], state='disabled', command=self.startexp)
+        self.start_btn.grid()
+
+        # Make-up page
+        top_frame_exp = Frame(self.tab_overview, bg='white',
+                              width=1000, height=50, pady=3, padx=400)
+        parameter_frame_exp = Frame(self.tab_overview, bg='gray',
+                                    width=1000, height=350, pady=3)
+        top_frame_exp.grid(row=0, sticky="ew")
+        parameter_frame_exp.grid(row=1, sticky="ew")
+
+        # Make-Up Top Frame in exp Tab
+        name_window_exp = Label(top_frame_exp, text='Experiment',
+                                bg='white', font=FONTS['FONT_HEADER'])
+        name_window_exp.grid()
+
+    def db_connect(self):
+
+        try:
+
+            db_connection = mdb.connect(host='127.0.0.1',
+                                        user='root',
+                                        password='',
+                                        database='chemistry')
+
+            self.label.configure(text="Connected Successfully")
+
+        except mdb.Error as e:
+            self.label.configure(text="Not Successfully Connected")
+
+    def get_user_experiments(self, v):
+        self.v = v
+        self.wanted_user_id = (list(self.dict_a.keys())[
+            list(self.dict_a.values()).index(v)])
+        self.experiment_list = []
+        self.experimenter_id_list = []
+        val_list = ["None"]
+
+        experiments = my_conn.execute(
+            f"SELECT * FROM experiments_experiment WHERE user_id={self.wanted_user_id}")
+        for ds in experiments:
+            self.experiment_list.append(ds[3])
+            self.experimenter_id_list.append(ds[0])
+
+        self.show_user_experiments(
+            self.experimenter_id_list, self.experiment_list)
+
+    def show_user_experiments(self, list, primary_id_list):
+        try:
+            self.Experiment.destroy()
+        except:
+            pass
+
+        self.dict_id_list = dict(
+            zip(list, primary_id_list))
+        val_list = ["None"]
+        default_value = tk.StringVar()
+        default_value.set(val_list[0])
+        self.Experiment = tk.OptionMenu(
+            self.Upload_Screen, default_value, *self.dict_id_list.values(), command=self.get_experiment_pk_for_data_upload)
+        self.Experiment.grid(row=6,  column=3)
+
+    def get_experiment_pk_for_data_upload(self, v):
+        wanted_user_id = (list(self.dict_id_list.keys())[
+                          list(self.dict_id_list.values()).index(v)])
+
+        set = my_conn.execute(
+            f"SELECT * FROM experiments_experiment WHERE id={wanted_user_id}")
+
+        for ds in set:
+
+            self.pk = ds[0]
+        return
+
+    def add_upload_to_measurement(self, f, is_approved, device_id, pk):
+
+        query_measurement = "INSERT INTO  `measurements_measurement` (`file` ,`is_approved`,`device_id`,`experiment_id` ) \
+                VALUES(%s,%s,%s,%s)"
+        my_measurement_data = (f, is_approved, device_id,
+                               pk)
+        my_conn.execute(query_measurement, my_measurement_data)
+        my_retrieval_data = (f, is_approved, device_id, pk
+                             )
+        retrieve_query = "SELECT id FROM  `measurements_measurement` WHERE `file`=%s AND `is_approved`=%s AND `device_id`=%s AND \
+                `experiment_id`=%s"
+        a = my_conn.execute(
+            retrieve_query, my_retrieval_data)
+        print("set down")
+        self.measurement_pk = a.all()[0][0]
+        print(self.measurement_pk)
+
+    def csv_to_array(self):
+
+        f = open(self.filename)
+
+        csv_path_split_array = f.name.split("/")
+
+        csv_path = csv_path_split_array[6]
+
+        data = pd.read_csv(f, encoding='UTF-8')
+        is_approved = 1
+        device_id = 1
+        self.add_upload_to_measurement(
+            csv_path, is_approved, device_id, self.pk)
+        print("executed")
+
+        data_conv = data[['conversion', 'tres']]
+
+        data_conv['tres'] = data_conv.apply(
+            lambda row: timedelta(minutes=float(row.tres)).total_seconds(), axis=1)
+        data_conv.rename(columns={'conversion': 'result',
+                                  'tres': 'res_time'}, inplace=True)
+
+        data_conv['measurement_id'] = self.measurement_pk
+
+        data_conv.to_sql('measurements_data', my_conn,
+                         if_exists='append', index=False, method='multi')
+
+        return data_conv
+
+    def upload(self):
+        self.csv_to_array()
+
+    def browseFiles(self):
+        self.f_types = [('CSV files', "*.csv"), ('All', "*.*")]
+        self.filename = filedialog.askopenfilename(filetypes=self.f_types)
+
+        # Change label contents
+        self.label_file_explorer.configure(
+            text="File Opened: " + self.filename)
+        self.get_measurement_pk_for_measurement_id_of_data()
+
+    def _upload_results_pop_up(self):
+
+        pop_up_upload_frame = tk.Frame(
+            self.upload_pop_up, bg='white', width=1000, height=50, pady=3, padx=400)
+        pop_up_upload_frame.grid(row=0, sticky="ew")
+
+        options = tk.StringVar(pop_up_upload_frame)
         options.set("Choose")  # default value
 
-        user_label = tk.Label(self.upload_pop_up,  text='User',
+        user_label = tk.Label(pop_up_upload_frame,  text='User',
                               font=('Helvetica', 16), width=30, anchor="c")
         user_label.grid(row=0, column=10, columnspan=4)
 
         user_options_menu = tk.OptionMenu(
-            self.upload_pop_up, options, *self.dict_a.values(), command=self.get_user_experiments)
+            pop_up_upload_frame, options, *self.dict_a.values(), command=self.get_user_experiments)
         user_options_menu.configure(width=30)
         user_options_menu.grid(row=1, column=10)
 
-        self.name_label = tk.Label(self.upload_pop_up,  text='Experiment Name',
+        self.name_label = tk.Label(pop_up_upload_frame,  text='Experiment Name',
                                    font=('Helvetica', 16), width=30, anchor="c")
         self.name_label.grid(row=2, column=10, columnspan=5)
 
-        self.experiment_name_en = tk.Entry(self.upload_pop_up,
+        self.experiment_name_en = tk.Entry(pop_up_upload_frame,
                                            font=FONTS['FONT_ENTRY'], width=30)
         self.experiment_name_en.grid(row=3, column=10)
 
-        self.temperature_label = tk.Label(self.upload_pop_up,  text='Temperature',
+        self.temperature_label = tk.Label(pop_up_upload_frame,  text='Temperature',
                                           font=('Helvetica', 16), width=30, anchor="c")
         self.temperature_label.grid(row=4, column=10, columnspan=4)
 
-        self.temperature_en = tk.Entry(self.upload_pop_up,
+        self.temperature_en = tk.Entry(pop_up_upload_frame,
                                        font=FONTS['FONT_ENTRY'], width=30)
         self.temperature_en.grid(row=5, column=10)
-        self.volume_label = tk.Label(self.upload_pop_up,  text='Volume',
+        self.volume_label = tk.Label(pop_up_upload_frame,  text='Volume',
                                      font=('Helvetica', 16), width=30, anchor="c")
         self.volume_label.grid(row=6, column=10, columnspan=4)
 
-        self.volume_en = tk.Entry(self.upload_pop_up,
+        self.volume_en = tk.Entry(pop_up_upload_frame,
                                   font=FONTS['FONT_ENTRY'], width=30)
         self.volume_en.grid(row=7, column=10)
 
-        upload_button = tk.Button(self.upload_pop_up,  text='Add Record', width=10,
+        upload_button = tk.Button(pop_up_upload_frame,  text='Add Record', width=10,
                                   command=lambda: self.add_experiment_data())
         upload_button.grid(row=8, column=10)
         self.my_str = tk.StringVar()
-        l5 = tk.Label(self.upload_pop_up,  textvariable=self.my_str, width=10)
+        l5 = tk.Label(pop_up_upload_frame,  textvariable=self.my_str, width=10)
         l5.grid(row=9, column=10)
         self.my_str.set("Output")
 
@@ -864,6 +936,7 @@ class View(tk.Tk):
                 VALUES(%s,%s,%s,%s,%s,%s)"
             my_data = (self.date, self.time, self.exp_name,
                        self.temperature, self.volume, self.wanted_user_id)
+
             my_retrieval_data = (self.exp_name, self.date, self.temperature, self.volume
                                  )
             retrieve_query = "SELECT id FROM  `experiments_experiment` WHERE `name`=%s AND `date`=%s AND `temperature`=%s AND \
@@ -871,10 +944,10 @@ class View(tk.Tk):
             ex = my_conn.execute(query, my_data)
             row_id = my_conn.execute(retrieve_query, my_retrieval_data)
 
-            print(row_id.all()[0][0])
-
             # retrieve its primary key
             # use primary keu for data insersion
+
+            self.get_user_experiments(self.v)
 
             self.go_to_tab(self.upload_screen)
 
@@ -890,7 +963,6 @@ class View(tk.Tk):
     def _get_user_names(self):
         list_of_experimenters = []
         list_of_experimenter_ids = []
-
         re_set = my_conn.execute("SELECT * FROM users_user")
         for ds in re_set:
             list_of_experimenters.append(ds[4])
@@ -911,16 +983,191 @@ class View(tk.Tk):
         self.Upload_Screen.grid(row=2, column=3)
 
         self.label_file_explorer = tk.Label(self.Upload_Screen,
-                                            text="File Explorer using Tkinter")
+                                            text="File path")
         button_explore = ttk.Button(self.Upload_Screen,
                                     text="Browse Files",
                                     command=self.browseFiles)
 
         upload_button = ttk.Button(self.Upload_Screen,
-                                   text="Upload",
+                                   text="Upload CSV file",
                                    command=self.upload)
-        self.label_file_explorer.grid(row=3, column=3)
+        self.label_file_explorer.grid(row=7, column=3)
 
-        button_explore.grid(row=4, column=3)
+        button_explore.grid(row=8, column=3)
 
-        upload_button.grid(row=5, column=3)
+        upload_button.grid(row=9, column=3)
+
+    def startexp(self):
+        # root.destroy()
+
+        startfile = open(Temporary_textfile, 'w')
+        startfile.write('start')
+        startfile.close()
+
+        logger.info(
+            'Experiment started by operator. Start sign is communicated to LabView.')
+
+        starting(self.ExperimentFolder)
+
+    def check_experimentFoldertxtfile(self, expfolder, exp_code):
+        directory_code = os.path.basename(expfolder).split('_')[-1]
+        if not directory_code == exp_code:
+            logger.warning('It seems that the code given by LabView ({}) does not match the real code ({}). Please give the correct Experiment Folder'.format(
+                directory_code, exp_code))
+            experimentfolder = input('>> ')
+            return experimentfolder
+        return expfolder
+
+    def confirm_code(self):
+        '''
+        Extracts code from entry field and writes it in temporary text file (as 'Code,,code') in Communication folder. Can now be read by LabView.
+        '''
+        code = self.code_en.get()
+
+        # code will later be extracted from path as .split('_')[-1]
+        if '_' in code:
+            logger.warning('Code cannot contain _.')
+            return
+        self.code_en.configure(state='readonly')
+        self.NMRGPC_confirm_code.configure(state='disabled')
+
+        with open(Temporary_textfile, "a") as f:
+            f.write('Code,,')
+            f.write(code)
+            f.close()
+
+        logger.info(
+            'Code ({}) and timesweep parameters are communicated to LabVIEW software'.format(code))
+
+        self.experiment_extra.loc[0, 'code'] = code
+
+        self.labelLabview.configure(
+            text='Open the LabVIEW and start running the software.')
+        self.confirmlabview.configure(state='normal')
+        self.HelpLabview.configure(state='normal')
+        return code
+
+    def confirmLabview(self):
+        '''
+        Confirms if LabView is started
+        '''
+
+        if not os.path.exists(Pathlastexp_textfile):
+            logger.warning('Text file ({}) were experiment folder is saved does not exists.'.format(
+                Pathlastexp_textfile))
+
+        self.ExperimentFolder = Path(
+            (open(Pathlastexp_textfile, 'r').read().replace("\\", "/")))
+        logger.debug(
+            'Experiment folder communicated by LabView: {}'.format(self.ExperimentFolder))
+
+        self.ExperimentFolder = Path(
+            self.check_experimentFoldertxtfile(self.ExperimentFolder, self.code_en.get()))
+
+        ExperimentFolder_SDRIVE = str(self.ExperimentFolder)
+        try:
+            ExperimentFolder_SDRIVE = ExperimentFolder_SDRIVE.replace(
+                'Z', 'S', 1)
+            ExperimentFolder_SDRIVE = Path(ExperimentFolder_SDRIVE)
+        except:
+            pass
+
+        found = False
+        while found == False:
+            if self.ExperimentFolder.exists():
+                self.labelLabviewInfo.configure(
+                    text='Experiment folder found ({})'.format(self.ExperimentFolder))
+                logger.info(
+                    'Experiment folder found as {}'.format(self.ExperimentFolder))
+                found = True
+            elif ExperimentFolder_SDRIVE.exists():
+                self.ExperimentFolder = ExperimentFolder_SDRIVE
+                logger.info(
+                    'Experiment folder found as {} (changed to S drive)'.format(self.ExperimentFolder))
+                self.labelLabviewInfo.configure(
+                    text='Experiment folder found ({})'.format(self.ExperimentFolder))
+                found = True
+            else:
+                self.labelLabviewInfo.configure(
+                    text='Experiment folder NOT found.')
+                logger.warning('Experiment Folder given by LabView ({}) not found. Please give the correct Experiment Folder.'.format(
+                    self.ExperimentFolder))
+                self.ExperimentFolder = Path(input('>> '))
+
+        self.experiment_extra.loc[0,
+                                  'Mainfolder'] = self.ExperimentFolder
+        self.experiment_extra = SearchExperimentFolder(
+            self.ExperimentFolder, CommunicationMainFolder, self.experiment_extra, mode='GPCandNMR')
+
+        self.labelPss.configure(
+            text='Open the PSSwin software and name the experiment ({}.txt).'.format(self.code_en.get()))
+        self.confirmpss.configure(state='normal')
+        self.Helppss.configure(state='normal')
+        self.confirmlabview.configure(state='disabled')
+        self.HelpLabview.configure(state='disabled')
+
+    def confirm_emailadress(self):
+        self.addEmail.configure(state='disabled')
+        self.entryEmail.configure(state='readonly')
+        self.start_btn.configure(state='normal')
+        self.confirmEmail.configure(state='disabled')
+
+        self.experiment_extra.to_csv(os.path.join(
+            self.experiment_extra.loc[0, 'Softwarefolder'], '{}_extras.csv'.format(self.code_en.get())))
+        logger.info('{}_extra.csv saved in {}'.format(
+            self.code_en, self.experiment_extra.loc[0, 'Softwarefolder']))
+
+    def HelpLabView(self):
+        return
+
+    def HelpPss(self):
+        self.labelPssInfo.configure(text='Pss Check')
+        logger.info('Psswin is okay')
+        self.labelSpinsolve.configure(
+            text='Name the experiment ({}) in the Spinsolve software.'.format(self.code_en.get()))
+        self.confirmpss.configure(state='disabled')
+        self.Helppss.configure(state='disabled')
+        self.confirmspinsolve.configure(state='normal')
+        self.Helpspinsolve.configure(state='normal')
+
+    def HelpSpinsolve(self):
+        return
+
+    def confirmPss(self):
+        self.labelPssInfo.configure(text='Pss Check')
+        logger.info('Psswin is okay')
+        self.labelSpinsolve.configure(
+            text='Name the experiment ({}) in the Spinsolve software.'.format(self.code_en))
+        self.confirmpss.configure(state='disabled')
+        self.Helppss.configure(state='disabled')
+        self.confirmspinsolve.configure(state='normal')
+        self.Helpspinsolve.configure(state='normal')
+
+    def confirmSpinsolve(self):
+
+        self.labelSpinsolveInfo.configure(text='Spinsolve Check')
+        logger.info('Spinsolve is okay')
+        self.confirmspinsolve.configure(state='disabled')
+        self.Helpspinsolve.configure(state='disabled')
+        self.confirmEmail.configure(state='normal')
+        self.addEmail.configure(state='normal')
+        self.entryEmail.configure(state='normal')
+        self.experiment_extra['Emails'] = [[]]
+        # self.labelEmailinfo.configure(
+        #     text='Optional: Data will be send via email at the end of the experiment')
+        # if not email_check:
+        #     self.confirm_emailadress()
+        #     self.labelEmailinfo.configure(
+        #         text='Email function not in use. Connection could not be made.')
+
+    def AddEmail(self):
+        return
+
+    def Confirm_reactor_parameters(self):
+        logger.info('Reactor parameters confirmed')
+
+        # once confirmed, do not allow further changes by disabling button
+        for parameterline in SETUP_DEFAULT_VALUES_NMR:
+            parameterline[5].configure(state='disabled')  # button disabled
+            parameterline[0].configure(state='readonly')  # entry readonly
+        self.go_to_tab(self.tab_NMRGPC_Timesweeps)

@@ -44,3 +44,20 @@
 
 #                                    command=self.uplo_experiment, width=6)
 #     confirm_experiment.grid(row=9, column=0)
+
+# def show_measurement_data(self, experiment_key):
+#     list_of_experiments = []
+#     list_of_experiment_ids = []
+#     re_set = my_conn.execute("SELECT * FROM experiments_experiment")
+#     for ds in re_set:
+#         list_of_experiments.append(ds[3])
+#         list_of_experiment_ids.append(ds[0])
+#     self.dict_experiment_id_name = dict(
+#         zip(list_of_experiment_ids, list_of_experiments))
+#     print(self.dict_experiment_id_name)
+
+#     options = tk.StringVar(self.upload_screen)
+#     options.set("Choose")  # default value
+#     self.Experiments = tk.OptionMenu(
+#         self.upload_screen, options, *self.dict_experiment_id_name.values(), command=self.get_measurement_pk_for_data_upload)
+#     self.Experiments.grid(row=6,  column=3)
