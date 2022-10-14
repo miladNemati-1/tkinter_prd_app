@@ -43,7 +43,7 @@ from code_extra.start_experiment import starting
 
 from code_extra.start_experiment import starting
 
-import mysql.connector
+
 pymysql.install_as_MySQLdb()
 
 my_conn = create_engine("mysql+mysqldb://root@localhost/chemistry")
@@ -998,7 +998,7 @@ class View(tk.Tk):
         upload_button.grid(row=9, column=3)
 
     def startexp(self):
-        # root.destroy()
+        print(Temporary_textfile)
 
         startfile = open(Temporary_textfile, 'w')
         startfile.write('start')
@@ -1030,6 +1030,7 @@ class View(tk.Tk):
             return
         self.code_en.configure(state='readonly')
         self.NMRGPC_confirm_code.configure(state='disabled')
+        print(Temporary_textfile)
 
         with open(Temporary_textfile, "a") as f:
             f.write('Code,,')

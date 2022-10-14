@@ -25,10 +25,12 @@ class Model:
         """Constructor"""
 
     def change_folder_path(self, new_parent_folder_path, folder_type):
+
         if type(new_parent_folder_path) != str:
             new_parent_folder_path = str(new_parent_folder_path.get())
         else:
-            new_parent_folder_path = str(new_parent_folder_path)
+
+            new_parent_folder_path = str(new_parent_folder_path.get())
 
         if not os.path.exists(new_parent_folder_path):
             if folder_type == "COMMUNICATION":
@@ -44,6 +46,7 @@ class Model:
 
 
     def create_experiment_txt_files(self, new_parent_folder_path):
+
 
         Temporary_textfile = new_parent_folder_path + '/temporary_experiment.txt'
         Pathlastexp_textfile = new_parent_folder_path + '/PathLastExperiment.txt'

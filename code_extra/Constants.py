@@ -24,6 +24,6 @@ col_names_parameters = ['Start_min','Stop_min', 'Volume', 'StartFR','StopFR', 'S
 TIMESWEEP_PARAMETERS = pd.DataFrame(columns = col_names_parameters)
 
 DRIVE = 'S'
-FOLDERS = {'COMMUNICATION': os.path.join(os.path.dirname(os.getcwd()),'CommunicationFolder'),
+FOLDERS = {'COMMUNICATION': "Z:/Sci-Chem/PRD/NMR 112/Automated Platform/Final_LabView_allVIs/PythonCommunication",
             'GPC' : '{}:/Sci-Chem/PRD/GPC 112/2018-March/Projects'.format(DRIVE),
             'NMR' : 'C:/PROJECTS/DATA'}
