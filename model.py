@@ -91,6 +91,10 @@ class Model:
                             '{} changed from {} to {}'.format(parameter, old_parameter, SETUP_DEFAULT_VALUES_NMR[i][4]))
                 else:
                     pass
+        print("itemdown")
+        for item in SETUP_DEFAULT_VALUES_NMR:
+            print(item)
+        
 
     def check_entries_is_float(self, list_entries):
         for entry in list_entries:

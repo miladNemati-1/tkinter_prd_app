@@ -33,7 +33,7 @@ class Controller:
 
     def on_change_button_click(self):
         self.model.change_value()
-        View.change_parameter_view_values(self.view)
+        View.change_values(self.view)
 
     def calculate_flow_rates(self, timesweep_from, timesweep_to):
 

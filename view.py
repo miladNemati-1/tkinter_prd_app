@@ -1,6 +1,6 @@
 from ctypes import alignment
 from re import S
-from turtle import width
+from turtle import pen, width
 from regex import R
 from sqlalchemy import create_engine
 import pymysql.connections
@@ -42,6 +42,7 @@ from code_extra.start_experiment import starting
 
 
 from code_extra.start_experiment import starting
+from model import isfloat
 
 
 pymysql.install_as_MySQLdb()
@@ -76,6 +77,7 @@ DATABASES = {
 
 class View(tk.Tk):
     """"""
+    wGPC_all_ts_info = []
     experiment_extra = pd.DataFrame(columns=['code', 'Mainfolder', 'GPCfolder', 'Timesweepfolder',
                                              'Infofolder', 'Softwarefolder', 'Rawfolder', 'Plotsfolder', 'COMMUNICATION', 'GPC', 'NMR'])
     Labviewscript = 'GPC-NMR Timesweep_GUIversion_version4_lab112_gpcPC.vi'
@@ -1006,6 +1008,7 @@ class View(tk.Tk):
 
         logger.info(
             'Experiment started by operator. Start sign is communicated to LabView.')
+        print(self.ExperimentFolder)
 
         starting(self.ExperimentFolder)
 
@@ -1017,6 +1020,8 @@ class View(tk.Tk):
             experimentfolder = input('>> ')
             return experimentfolder
         return expfolder
+
+    
 
     def confirm_code(self):
         '''
@@ -1041,6 +1046,48 @@ class View(tk.Tk):
             'Code ({}) and timesweep parameters are communicated to LabVIEW software'.format(code))
 
         self.experiment_extra.loc[0, 'code'] = code
+
+        reactorvol = self.parameterList1[0][4]
+
+        col_names = ['Start','Stop', 'volume', 'StartFR','StopFR', 'stabilisation time', 'dead volume 1', 'Dead Volume 2', 'GPC Interval', 'Dead Volume 3','Dilution FR', 'DeadVolume1(min)', 'DeadVolume2(min)', 'DeadVolume3(min)', 'NMR interval', 'mode']
+        self.parametersDF = pd.DataFrame(columns = col_names)
+        params = {}
+
+
+        for item in SETUP_DEFAULT_VALUES_NMR:
+            params[item[2]] = item[4]
+        print("lllll") 
+        print(params)
+        print("timesweep info")
+
+        print(self.NMRGPC_all_ts_info)
+
+        for i, timesweep in enumerate(self.NMRGPC_all_ts_info):
+            print("loopin")
+            fr1, fr2 = reactorvol/timesweep[2], reactorvol/timesweep[3]
+            #Create DF with all the parameters
+    
+            #Create DF with all the parameters
+            self.parametersDF.loc[i, 'Start']= timesweep[2]
+            self.parametersDF.loc[i, 'Stop']= timesweep[3]
+            self.parametersDF.loc[i, 'volume'] =  params['Reactor Volume']
+            self.parametersDF.loc[i, 'StartFR']= fr1
+            self.parametersDF.loc[i, 'StopFR'] = fr2
+            self.parametersDF.loc[i, 'dead volume 1'] =  params['Dead Volume 1']
+            self.parametersDF.loc[i, 'Dead Volume 2'] =  params['Dead Volume 2']
+            self.parametersDF.loc[i, 'Dead Volume 3'] =  params['Dead Volume 3']
+            self.parametersDF.loc[i, 'NMR interval'] =  params['NMR Interval']
+            self.parametersDF.loc[i, 'GPC Interval'] =  params['GPC Interval']
+            self.parametersDF.loc[i, 'stabilisation time'] =  params['Stabilization factor']
+            self.parametersDF.loc[i, 'Dilution FR'] =  params['Dilution Flowrate']
+            self.parametersDF.loc[i, 'DeadVolume1(min)'] = self.parametersDF.loc[i, 'dead volume 1']/self.parametersDF.loc[i,'StopFR']
+            self.parametersDF.loc[i, 'DeadVolume2(min)'] = self.parametersDF.loc[i,'Dead Volume 2']/self.parametersDF.loc[i ,'StopFR']
+            self.parametersDF.loc[i, 'DeadVolume3(min)'] = self.parametersDF.loc[i,'Dead Volume 3']/self.parametersDF.loc[i,'Dilution FR']
+            self.parametersDF.loc[i, 'mode'] = 'GPCandNMR'
+
+
+
+        self.parametersDF.to_csv('{}/ExperimentParameters.csv'.format(CommunicationMainFolder))
 
         self.labelLabview.configure(
             text='Open the LabVIEW and start running the software.')
@@ -1172,3 +1219,35 @@ class View(tk.Tk):
             parameterline[5].configure(state='disabled')  # button disabled
             parameterline[0].configure(state='readonly')  # entry readonly
         self.go_to_tab(self.tab_NMRGPC_Timesweeps)
+    def change_values(self):
+        self.parameterList1 = [['entry1', 'default1', 'Reactor Volume', 'mL', 0.90, 'change1'],
+                ['entry2', 'default2', 'Dead Volume 1', 'mL', 0.32,'change2' ],
+                ['entry3', 'default3', 'Dead Volume 2', 'mL', 0.17 ,'change3'],
+                ['entry4', 'default4', 'Dead Volume 3', 'mL', 0.17 ,'change4'],
+                ['entry5', 'default5', 'NMR Interval', 'sec', 17 ,'change5'],
+                ['entry6', 'default6', 'GPC Interval', 'minutes', 3 ,'change6'],
+                ['entry7', 'default7', 'Stabilization factor', 'x', 1.3,'change7'],
+                ['entry8', 'default87', 'Dilution Flowrate', 'mL/min', 1.5,'change8']]
+
+
+        list_parameters = self.parameterList1
+        entries = [i[0] for i in list_parameters]
+        entries_values = [i for i in entries]
+
+        for i, value in enumerate(entries_values):
+            if list(value) == []:
+                pass
+            else:
+                if isfloat(value) == True and float(list_parameters[i][4]) != float(value):
+                    if float(value) == 0:
+                        return print("No changes to parameters")
+                    else:
+                        self.parameterList1[i][4] = float(value)
+                else:
+                    pass
+        print('Parameters Changed')
+        print(self.parameterList1)
+
+
+        
+

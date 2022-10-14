@@ -1,0 +1,4 @@
+14/10/22  16:58:56		CommunicationMainFolder: Z:/Sci-Chem/PRD/NMR 112/Automated Platform/Final_LabView_allVIs/PythonCommunication
+14/10/22  16:58:56		Psswin: Z:/Sci-Chem/PRD/GPC 112/2018-March/Projects
+14/10/22  16:58:56		NMR: C:/PROJECTS/DATA
+14/10/22  16:58:59		Email not OK (535, Username and Password not accepted, set "Allow less secure apps" ON)

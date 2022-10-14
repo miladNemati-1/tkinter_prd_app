@@ -1,10 +1,12 @@
 import os
+from turtle import pen
 import pandas as pd
 from tqdm import tqdm
 from time import sleep
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
+import save_plots
 
 from datetime import datetime
 from pathlib import Path
@@ -12,6 +14,8 @@ from pathlib import Path
 from code_extra.log_method import setup_logger
 from code_extra.Constants import FONTS
 from code_extra.ExperimentDF import ExperimentDF
+import view
+import UpdateDF_GPCdata, UpdateDF_NMRdata, UpdateDF_NMRdata_v2
 
 
 logger = setup_logger('Start Experiment')
@@ -88,7 +92,9 @@ def SearchForNMRfolder(extras_file, WARNING_TIMER=30):
 
     extrasDF = pd.read_csv(extras_file)
     code = extrasDF.loc[0, 'code']
-    NMRFolder = extrasDF.loc[0, 'NMR']
+    # NMRFolder = extrasDF.loc[0, 'NMR']
+    NMRFolder = "C:/PROJECTS/DATA"
+    
 
     timer = 0
 
@@ -174,9 +180,56 @@ def starting(experimentFolder: str):
         experimentFolder, 'Software Details', '{}_parameters.csv'.format(code))
     extra_csv = os.path.join(
         experimentFolder, 'Software Details', '{}_extras.csv'.format(code))
+    print(extra_csv)
 
     WaitstabilisationTime(parameters_csv)
 
     SearchForNMRfolder(extra_csv)
 
     experiment_DF = CreateExpDF(extra_csv)
+    analysis = True
+    gpc_number = 0
+    modify_time = 0
+    saving_directory_plots, GPCfolder, infofolder, rawGPCfolder = view.experiment_extra.loc[0, ['Plotsfolder', 'GPCfolder', 'Infofolder', 'Rawfolder']]
+    nmr_interval = view.parametersDF.loc[0,'NMR interval']
+
+    while analysis:
+        print("sleeps {}".format(nmr_interval))
+        sleep(nmr_interval)
+        #nextLoop = input('>> Next Loop press ENTER')
+        expDF, newNMR_bool, modify_time = UpdateDF_NMRdata.updateDF_integrals(expDF, view.NMRfolder, view.expDF_directory, view.mode, view.SolutionDataframe, modify_time)
+        if newNMR_bool == False:
+            try:
+                save_plots.save_scanconversion(expDF, code, saving_directory_plots)
+                save_plots.save_scanintegrals(expDF, code, saving_directory_plots)
+                save_plots.save_tresconversion(expDF, code, saving_directory_plots)
+                save_plots.save_fit(expDF, code, saving_directory_plots)
+            except PermissionError:
+                print('Please close the .png files to update the experiment plots')
+            except:
+                print('could not save plots for unknown reason')
+            continue
+
+        if mode == 'GPCandNMR':    
+            expDF, gpc_number, newGPC = UpdateDF_GPCdata.search_newGPC(PsswinFolder, code, gpc_number, expDF, expDF_directory, GPCfolder, infofolder, rawGPCfolder)
+            if newGPC:
+                try:
+                    save_plots.save_tresMn(expDF, code, saving_directory_plots)
+                    save_plots.save_conversionMn(expDF, code, saving_directory_plots)
+                except PermissionError:
+                    print('Please close the .png files to update the experiment plots')
+                    print('GPC plots are updated')
+        try:
+            save_plots.save_scanconversion(expDF, code, saving_directory_plots)
+            save_plots.save_scanintegrals(expDF, code, saving_directory_plots)
+            save_plots.save_tresconversion(expDF, code, saving_directory_plots)
+        except PermissionError:
+            print('Please close the .png files to update the experiment plots')
+            
+       
+        try:
+            expDF.to_csv('{}/{}_data.csv'.format(experiment_extra.loc[0,'Mainfolder'], code))
+        except:
+            pass
+
+    print('End of Experiment')
