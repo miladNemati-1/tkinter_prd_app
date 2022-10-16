@@ -5,7 +5,7 @@ from regex import R
 from sqlalchemy import create_engine
 import pymysql.connections
 import pymysql as mdb
-
+from time import gmtime, strftime, sleep
 from tkinter import CENTER, filedialog
 from code_extra.log_method import setup_logger
 import pandas as pd
@@ -22,6 +22,8 @@ import pymysql
 from datetime import datetime
 from datetime import timedelta
 import os
+import save_plots
+import UpdateDF_NMRdata
 
 from pathlib import Path
 from sys import exec_prefix
@@ -30,6 +32,7 @@ from tkinter import ttk
 from tkinter import filedialog
 import os
 import pandas as pd
+
 
 from code_extra.log_method import setup_logger
 from code_extra.defining_folder import defining_communication_folder, defining_PsswinFolder, defining_NMRFolder, SearchExperimentFolder
@@ -41,8 +44,10 @@ from code_extra.precheck import check_files, check_Emailconnection
 from code_extra.start_experiment import starting
 
 
-from code_extra.start_experiment import starting
+from code_extra.start_experiment import starting, SearchForNMRfolder, CreateExpDF
+
 from model import isfloat
+import UpdateDF_GPCdata
 
 
 pymysql.install_as_MySQLdb()
@@ -77,6 +82,9 @@ DATABASES = {
 
 class View(tk.Tk):
     """"""
+    col_names = ['Start', 'Stop', 'volume', 'StartFR', 'StopFR', 'stabilisation time', 'dead volume 1', 'Dead Volume 2', 'GPC Interval',
+                 'Dead Volume 3', 'Dilution FR', 'DeadVolume1(min)', 'DeadVolume2(min)', 'DeadVolume3(min)', 'NMR interval', 'mode']
+    parametersDF = pd.DataFrame(columns=col_names)
     wGPC_all_ts_info = []
     experiment_extra = pd.DataFrame(columns=['code', 'Mainfolder', 'GPCfolder', 'Timesweepfolder',
                                              'Infofolder', 'Softwarefolder', 'Rawfolder', 'Plotsfolder', 'COMMUNICATION', 'GPC', 'NMR'])
@@ -126,8 +134,8 @@ class View(tk.Tk):
         self._make_conversion_screen()
         self._get_user_names()
         self._make_NMRGPC_initialisation_tab()
-        self._create_experiment_upload_screen()
-        self._upload_results_pop_up()
+        # self._create_experiment_upload_screen()
+        # self._upload_results_pop_up()
 
     def main(self):
         self.tab.select(self.welcome_tab)
@@ -156,8 +164,8 @@ class View(tk.Tk):
         self.tab.add(self.welcome_tab, text="Welcome")
         self.tab.add(self.setup, text="Setup")
         self.tab.add(self.tab_NMRGPC_Initialisation, text="NMR GPC Init")
-        self.tab.add(self.upload_screen, text="Upload Results")
-        self.tab.add(self.upload_pop_up, text="Upload Results Pop up")
+        # self.tab.add(self.upload_screen, text="Upload Results")
+        # self.tab.add(self.upload_pop_up, text="Upload Results Pop up")
         self.tab_NMR_Setup = ttk.Frame(self.tab)
         self.tab_NMR_Timesweeps = ttk.Frame(self.tab)
         self.tab_NMR_Conversion = ttk.Frame(self.tab)
@@ -862,52 +870,83 @@ class View(tk.Tk):
             text="File Opened: " + self.filename)
         self.get_measurement_pk_for_measurement_id_of_data()
 
+    def _create_experiment_upload_screen(self):
+
+        experiment_upload_frame = Tk.geometry("750x270")
+        experiment_upload_frame_top = Toplevel(experiment_upload_frame)
+        experiment_upload_frame_top.title("Select File for data upload")
+        button = ttk.Button(
+            experiment_upload_frame_top, text="Connection Status", command=self.db_connect)
+        button.grid(row=0, column=3)
+
+        self.label = ttk.Label(experiment_upload_frame_top, text="")
+        self.label.grid(row=1, column=3)
+
+        self.label_file_explorer = tk.Label(experiment_upload_frame_top,
+                                            text="File path")
+        button_explore = ttk.Button(experiment_upload_frame_top,
+                                    text="Browse Files",
+                                    command=self.browseFiles)
+
+        upload_button = ttk.Button(experiment_upload_frame_top,
+                                   text="Upload CSV file",
+                                   command=self.upload)
+        self.label_file_explorer.grid(row=7, column=3)
+
+        button_explore.grid(row=8, column=3)
+
+        upload_button.grid(row=9, column=3)
+
     def _upload_results_pop_up(self):
+        self.pop_up_frame = Tk.geometry("750x270")
+        self.pop_up_frame_top = Toplevel(self.pop_up_frame)
+        self.pop_up_frame_top.title("Select User for upload")
 
         pop_up_upload_frame = tk.Frame(
-            self.upload_pop_up, bg='white', width=1000, height=50, pady=3, padx=400)
+            self.pop_up_frame_top, bg='white', width=1000, height=50, pady=3, padx=400)
         pop_up_upload_frame.grid(row=0, sticky="ew")
 
         options = tk.StringVar(pop_up_upload_frame)
         options.set("Choose")  # default value
 
-        user_label = tk.Label(pop_up_upload_frame,  text='User',
+        user_label = tk.Label(self.pop_up_frame_top,  text='User',
                               font=('Helvetica', 16), width=30, anchor="c")
         user_label.grid(row=0, column=10, columnspan=4)
 
         user_options_menu = tk.OptionMenu(
-            pop_up_upload_frame, options, *self.dict_a.values(), command=self.get_user_experiments)
+            self.pop_up_frame_top, options, *self.dict_a.values(), command=self.get_user_experiments)
         user_options_menu.configure(width=30)
         user_options_menu.grid(row=1, column=10)
 
-        self.name_label = tk.Label(pop_up_upload_frame,  text='Experiment Name',
+        self.name_label = tk.Label(self.pop_up_frame_top,  text='Experiment Name',
                                    font=('Helvetica', 16), width=30, anchor="c")
         self.name_label.grid(row=2, column=10, columnspan=5)
 
-        self.experiment_name_en = tk.Entry(pop_up_upload_frame,
+        self.experiment_name_en = tk.Entry(self.pop_up_frame_top,
                                            font=FONTS['FONT_ENTRY'], width=30)
         self.experiment_name_en.grid(row=3, column=10)
 
-        self.temperature_label = tk.Label(pop_up_upload_frame,  text='Temperature',
+        self.temperature_label = tk.Label(self.pop_up_frame_top,  text='Temperature',
                                           font=('Helvetica', 16), width=30, anchor="c")
         self.temperature_label.grid(row=4, column=10, columnspan=4)
 
-        self.temperature_en = tk.Entry(pop_up_upload_frame,
+        self.temperature_en = tk.Entry(self.pop_up_frame_top,
                                        font=FONTS['FONT_ENTRY'], width=30)
         self.temperature_en.grid(row=5, column=10)
-        self.volume_label = tk.Label(pop_up_upload_frame,  text='Volume',
+        self.volume_label = tk.Label(self.pop_up_frame_top,  text='Volume',
                                      font=('Helvetica', 16), width=30, anchor="c")
         self.volume_label.grid(row=6, column=10, columnspan=4)
 
-        self.volume_en = tk.Entry(pop_up_upload_frame,
+        self.volume_en = tk.Entry(self.pop_up_frame_top,
                                   font=FONTS['FONT_ENTRY'], width=30)
         self.volume_en.grid(row=7, column=10)
 
-        upload_button = tk.Button(pop_up_upload_frame,  text='Add Record', width=10,
+        upload_button = tk.Button(self.pop_up_frame_top,  text='Add Record', width=10,
                                   command=lambda: self.add_experiment_data())
         upload_button.grid(row=8, column=10)
         self.my_str = tk.StringVar()
-        l5 = tk.Label(pop_up_upload_frame,  textvariable=self.my_str, width=10)
+        l5 = tk.Label(self.pop_up_frame_top,
+                      textvariable=self.my_str, width=10)
         l5.grid(row=9, column=10)
         self.my_str.set("Output")
 
@@ -950,8 +989,8 @@ class View(tk.Tk):
             # use primary keu for data insersion
 
             self.get_user_experiments(self.v)
-
-            self.go_to_tab(self.upload_screen)
+            self.pop_up_frame_top.destroy()
+            self._create_experiment_upload_screen()
 
         else:
             self.temperature_label.config(fg='red')   # foreground color
@@ -972,35 +1011,64 @@ class View(tk.Tk):
         self.dict_a = dict(
             zip(list_of_experimenter_ids, list_of_experimenters))
 
-    def _create_experiment_upload_screen(self):
-        button = ttk.Button(
-            self.upload_screen, text="Connection Status", command=self.db_connect)
-        button.grid(row=0, column=3)
+    def SearchCommunicationFolder(self, folder):
+        '''
+        Makes the different data folders in the main experiment folder.
 
-        self.label = ttk.Label(self.upload_screen, text="")
-        self.label.grid(row=1, column=3)
+        input:\n Folder
 
-        self.Upload_Screen = tk.Frame(self.upload_screen, bg='white', width=1000, height=50, pady=3,
-                                      padx=400)
-        self.Upload_Screen.grid(row=2, column=3)
+        Output:\n1) Folder where GPCs are going to be stored.\n2) Folder where timesweeps are going to be stored.\n3) Folder where Raw GPCs are going to be stored.\n4) Folder where experiment details are going to be stored.\n5) Folder where Injection infos are going to be stored.
+        '''
+        self.SolutionDataframe = pd.DataFrame()
 
-        self.label_file_explorer = tk.Label(self.Upload_Screen,
-                                            text="File path")
-        button_explore = ttk.Button(self.Upload_Screen,
-                                    text="Browse Files",
-                                    command=self.browseFiles)
+        mode = self.parametersDF.loc[0, 'mode']
 
-        upload_button = ttk.Button(self.Upload_Screen,
-                                   text="Upload CSV file",
-                                   command=self.upload)
-        self.label_file_explorer.grid(row=7, column=3)
+        newfolderTimesweepdata = os.path.join(folder, 'Timesweep Data')
+        if not os.path.exists(newfolderTimesweepdata):
+            os.mkdir(newfolderTimesweepdata)
+        newfoldersoftware = os.path.join(folder, 'Software details')
+        if not os.path.exists(newfoldersoftware):
+            os.mkdir(newfoldersoftware)
+        self.parametersDF.to_csv(
+            '{}/ParameterDF.csv'.format(newfoldersoftware))
+        newfolderplots = os.path.join(folder, 'Plots')
+        if not os.path.exists(newfolderplots):
+            os.mkdir(newfolderplots)
 
-        button_explore.grid(row=8, column=3)
+        if str(mode) == 'GPCandNMR':
+            newfolderGPC = os.path.join(folder, 'Filtered GPC Data')
+            if not os.path.exists(newfolderGPC):
+                os.mkdir(newfolderGPC)
 
-        upload_button.grid(row=9, column=3)
+            newfolderinfoGPC = os.path.join(folder, 'Info GPC Injections')
+            if not os.path.exists(newfolderinfoGPC):
+                os.mkdir(newfolderinfoGPC)
+
+            newfolderRawGPC = os.path.join(folder, 'Raw GPC text files')
+            if not os.path.exists(newfolderRawGPC):
+                os.mkdir(newfolderRawGPC)
+
+        elif mode == 'NMR':
+            newfolderGPC, newfolderinfoGPC, newfolderRawGPC = 'NaN', 'NaN', 'NaN'
+
+        self.experiment_extra.loc[0, ['GPCfolder', 'Timesweepfolder', 'Infofolder', 'Softwarefolder', 'Rawfolder', 'Plotsfolder']] = str(newfolderGPC).replace("\\", "/"), str(newfolderTimesweepdata).replace(
+            "\\", "/"), str(newfolderinfoGPC).replace("\\", "/"), str(newfoldersoftware).replace("\\", "/"), str(newfolderRawGPC).replace("\\", "/"), str(newfolderplots).replace("\\", "/")
+        self.experiment_extra.to_csv(
+            '{}/extras_experiment.csv'.format(newfoldersoftware))
+
+        if not self.SolutionDataframe.empty:
+            self.SolutionDataframe.to_csv(
+                '{}/ReactionSolution_{}.csv'.format(newfoldersoftware, self.experiment_extra.loc[0, 'code']))
+            # updateGUI('Solution Dataframe saved in software subfolder')
+        else:
+            # updateGUI('No Solution Details given')
+            return newfolderGPC, newfolderTimesweepdata, newfolderRawGPC
 
     def startexp(self):
-        print(Temporary_textfile)
+
+        nmr_interval = self.parametersDF.loc[0, 'NMR interval']
+        code = self.experiment_extra.loc[0, 'code']
+        mode = self.parametersDF.loc[0, 'mode']
 
         startfile = open(Temporary_textfile, 'w')
         startfile.write('start')
@@ -1008,9 +1076,81 @@ class View(tk.Tk):
 
         logger.info(
             'Experiment started by operator. Start sign is communicated to LabView.')
-        print(self.ExperimentFolder)
 
-        starting(self.ExperimentFolder)
+        vals = starting(self.ExperimentFolder)
+        NMRfolder = vals[0]
+        expDF = vals[1]
+
+        expDF_directory = '{}/{}_Experiment'.format(
+            self.experiment_extra.loc[0, 'Softwarefolder'], code)
+
+        scansDF = calculate_scans(TIMESWEEP_PARAMETERS, mode=mode)
+        last_timesweep_row = scansDF.iloc[-1][4]
+        scansDF_directory = '{}/{}_{}'.format(
+            self.experiment_extra.loc[0, 'Softwarefolder'], code, 'Scans.csv')
+        scansDF.to_csv(scansDF_directory)  # saves scans in csv file
+
+        end_counter = 0
+        analysis = True
+        gpc_number = 0
+        modify_time = 0
+        saving_directory_plots, GPCfolder, infofolder, rawGPCfolder = self.experiment_extra.loc[0, [
+            'Plotsfolder', 'GPCfolder', 'Infofolder', 'Rawfolder']]
+        self.SearchCommunicationFolder(self.ExperimentFolder)
+
+        while analysis and end_counter < last_timesweep_row:
+            print("sleeps {}".format(nmr_interval))
+            end_counter += 1
+            sleep(nmr_interval)
+
+            #nextLoop = input('>> Next Loop press ENTER')
+            expDF, newNMR_bool, modify_time = UpdateDF_NMRdata.updateDF_integrals(
+                expDF, NMRfolder, expDF_directory, mode, self.SolutionDataframe, modify_time)
+            if newNMR_bool == False:
+                try:
+                    save_plots.save_scanconversion(
+                        expDF, code, saving_directory_plots)
+                    save_plots.save_scanintegrals(
+                        expDF, code, saving_directory_plots)
+                    save_plots.save_tresconversion(
+                        expDF, code, saving_directory_plots)
+                    save_plots.save_fit(expDF, code, saving_directory_plots)
+                except PermissionError:
+                    print('Please close the .png files to update the experiment plots')
+                except:
+                    print('could not save plots for unknown reason')
+                continue
+
+            if mode == 'GPCandNMR':
+                expDF, gpc_number, newGPC = UpdateDF_GPCdata.search_newGPC(
+                    self.PsswinFolder, code, gpc_number, expDF, expDF_directory, GPCfolder, infofolder, rawGPCfolder)
+                if newGPC:
+                    try:
+                        save_plots.save_tresMn(
+                            expDF, code, saving_directory_plots)
+                        save_plots.save_conversionMn(
+                            expDF, code, saving_directory_plots)
+                    except PermissionError:
+                        print(
+                            'Please close the .png files to update the experiment plots')
+                        print('GPC plots are updated')
+            try:
+                save_plots.save_scanconversion(
+                    expDF, code, saving_directory_plots)
+                save_plots.save_scanintegrals(
+                    expDF, code, saving_directory_plots)
+                save_plots.save_tresconversion(
+                    expDF, code, saving_directory_plots)
+            except PermissionError:
+                print('Please close the .png files to update the experiment plots')
+
+            try:
+                expDF.to_csv(
+                    '{}/{}_data.csv'.format(self.experiment_extra.loc[0, 'Mainfolder'], code))
+            except:
+                pass
+
+        print('End of Experiment')
 
     def check_experimentFoldertxtfile(self, expfolder, exp_code):
         directory_code = os.path.basename(expfolder).split('_')[-1]
@@ -1020,8 +1160,6 @@ class View(tk.Tk):
             experimentfolder = input('>> ')
             return experimentfolder
         return expfolder
-
-    
 
     def confirm_code(self):
         '''
@@ -1049,45 +1187,44 @@ class View(tk.Tk):
 
         reactorvol = self.parameterList1[0][4]
 
-        col_names = ['Start','Stop', 'volume', 'StartFR','StopFR', 'stabilisation time', 'dead volume 1', 'Dead Volume 2', 'GPC Interval', 'Dead Volume 3','Dilution FR', 'DeadVolume1(min)', 'DeadVolume2(min)', 'DeadVolume3(min)', 'NMR interval', 'mode']
-        self.parametersDF = pd.DataFrame(columns = col_names)
+        col_names = ['Start', 'Stop', 'volume', 'StartFR', 'StopFR', 'stabilisation time', 'dead volume 1', 'Dead Volume 2', 'GPC Interval',
+                     'Dead Volume 3', 'Dilution FR', 'DeadVolume1(min)', 'DeadVolume2(min)', 'DeadVolume3(min)', 'NMR interval', 'mode']
+        self.parametersDF = pd.DataFrame(columns=col_names)
         params = {}
-
 
         for item in SETUP_DEFAULT_VALUES_NMR:
             params[item[2]] = item[4]
-        print("lllll") 
-        print(params)
-        print("timesweep info")
-
-        print(self.NMRGPC_all_ts_info)
 
         for i, timesweep in enumerate(self.NMRGPC_all_ts_info):
-            print("loopin")
+
             fr1, fr2 = reactorvol/timesweep[2], reactorvol/timesweep[3]
-            #Create DF with all the parameters
-    
-            #Create DF with all the parameters
-            self.parametersDF.loc[i, 'Start']= timesweep[2]
-            self.parametersDF.loc[i, 'Stop']= timesweep[3]
-            self.parametersDF.loc[i, 'volume'] =  params['Reactor Volume']
-            self.parametersDF.loc[i, 'StartFR']= fr1
+            # Create DF with all the parameters
+
+            # Create DF with all the parameters
+            self.parametersDF.loc[i, 'Start'] = timesweep[2]
+            self.parametersDF.loc[i, 'Stop'] = timesweep[3]
+            self.parametersDF.loc[i, 'volume'] = params['Reactor Volume']
+            self.parametersDF.loc[i, 'StartFR'] = fr1
             self.parametersDF.loc[i, 'StopFR'] = fr2
-            self.parametersDF.loc[i, 'dead volume 1'] =  params['Dead Volume 1']
-            self.parametersDF.loc[i, 'Dead Volume 2'] =  params['Dead Volume 2']
-            self.parametersDF.loc[i, 'Dead Volume 3'] =  params['Dead Volume 3']
-            self.parametersDF.loc[i, 'NMR interval'] =  params['NMR Interval']
-            self.parametersDF.loc[i, 'GPC Interval'] =  params['GPC Interval']
-            self.parametersDF.loc[i, 'stabilisation time'] =  params['Stabilization factor']
-            self.parametersDF.loc[i, 'Dilution FR'] =  params['Dilution Flowrate']
-            self.parametersDF.loc[i, 'DeadVolume1(min)'] = self.parametersDF.loc[i, 'dead volume 1']/self.parametersDF.loc[i,'StopFR']
-            self.parametersDF.loc[i, 'DeadVolume2(min)'] = self.parametersDF.loc[i,'Dead Volume 2']/self.parametersDF.loc[i ,'StopFR']
-            self.parametersDF.loc[i, 'DeadVolume3(min)'] = self.parametersDF.loc[i,'Dead Volume 3']/self.parametersDF.loc[i,'Dilution FR']
+            self.parametersDF.loc[i, 'dead volume 1'] = params['Dead Volume 1']
+            self.parametersDF.loc[i, 'Dead Volume 2'] = params['Dead Volume 2']
+            self.parametersDF.loc[i, 'Dead Volume 3'] = params['Dead Volume 3']
+            self.parametersDF.loc[i, 'NMR interval'] = params['NMR Interval']
+            self.parametersDF.loc[i, 'GPC Interval'] = params['GPC Interval']
+            self.parametersDF.loc[i,
+                                  'stabilisation time'] = params['Stabilization factor']
+            self.parametersDF.loc[i,
+                                  'Dilution FR'] = params['Dilution Flowrate']
+            self.parametersDF.loc[i, 'DeadVolume1(min)'] = self.parametersDF.loc[i,
+                                                                                 'dead volume 1']/self.parametersDF.loc[i, 'StopFR']
+            self.parametersDF.loc[i, 'DeadVolume2(min)'] = self.parametersDF.loc[i,
+                                                                                 'Dead Volume 2']/self.parametersDF.loc[i, 'StopFR']
+            self.parametersDF.loc[i, 'DeadVolume3(min)'] = self.parametersDF.loc[i,
+                                                                                 'Dead Volume 3']/self.parametersDF.loc[i, 'Dilution FR']
             self.parametersDF.loc[i, 'mode'] = 'GPCandNMR'
 
-
-
-        self.parametersDF.to_csv('{}/ExperimentParameters.csv'.format(CommunicationMainFolder))
+        self.parametersDF.to_csv(
+            '{}/ExperimentParameters.csv'.format(CommunicationMainFolder))
 
         self.labelLabview.configure(
             text='Open the LabVIEW and start running the software.')
@@ -1219,16 +1356,22 @@ class View(tk.Tk):
             parameterline[5].configure(state='disabled')  # button disabled
             parameterline[0].configure(state='readonly')  # entry readonly
         self.go_to_tab(self.tab_NMRGPC_Timesweeps)
+
     def change_values(self):
         self.parameterList1 = [['entry1', 'default1', 'Reactor Volume', 'mL', 0.90, 'change1'],
-                ['entry2', 'default2', 'Dead Volume 1', 'mL', 0.32,'change2' ],
-                ['entry3', 'default3', 'Dead Volume 2', 'mL', 0.17 ,'change3'],
-                ['entry4', 'default4', 'Dead Volume 3', 'mL', 0.17 ,'change4'],
-                ['entry5', 'default5', 'NMR Interval', 'sec', 17 ,'change5'],
-                ['entry6', 'default6', 'GPC Interval', 'minutes', 3 ,'change6'],
-                ['entry7', 'default7', 'Stabilization factor', 'x', 1.3,'change7'],
-                ['entry8', 'default87', 'Dilution Flowrate', 'mL/min', 1.5,'change8']]
-
+                               ['entry2', 'default2', 'Dead Volume 1',
+                                   'mL', 0.32, 'change2'],
+                               ['entry3', 'default3', 'Dead Volume 2',
+                                   'mL', 0.17, 'change3'],
+                               ['entry4', 'default4', 'Dead Volume 3',
+                                   'mL', 0.17, 'change4'],
+                               ['entry5', 'default5', 'NMR Interval',
+                                   'sec', 17, 'change5'],
+                               ['entry6', 'default6', 'GPC Interval',
+                                   'minutes', 3, 'change6'],
+                               ['entry7', 'default7', 'Stabilization factor',
+                                   'x', 1.3, 'change7'],
+                               ['entry8', 'default87', 'Dilution Flowrate', 'mL/min', 1.5, 'change8']]
 
         list_parameters = self.parameterList1
         entries = [i[0] for i in list_parameters]
@@ -1247,7 +1390,3 @@ class View(tk.Tk):
                     pass
         print('Parameters Changed')
         print(self.parameterList1)
-
-
-        
-

@@ -137,10 +137,10 @@ class Controller:
         total_scan = self.model.calculate_final_scan_gpc_time()[0]
         total_time = self.model.calculate_final_scan_gpc_time()[1]
         total_gpc = self.model.calculate_final_scan_gpc_time()[2]
-        scan_numbers = self.model.calculate_final_scan_gpc_time()[3]
+        self.scan_numbers = self.model.calculate_final_scan_gpc_time()[3]
 
         self.view.show_final_timesweep_info(
-            total_time, total_scan, total_gpc, scan_numbers)
+            total_time, total_scan, total_gpc, self.scan_numbers)
 
         self.view.go_to_tab(self.view.tab_NMRGPC_Conversion)
 
@@ -168,10 +168,8 @@ class Controller:
 
         solutionDataFrame = view.pd.concat(
             [raft, monomer, initiator, solvent], ignore_index=True)
-        print(solutionDataFrame)
         self.model.add_entries_to_dataframe(list_entries[0], list_entries[1], list_entries[2], list_entries[3],
                                             solutionDataFrame)
-        print(solutionDataFrame)
         raft = solutionDataFrame.iloc[0]
         monomer = solutionDataFrame.iloc[1]
         initiator = solutionDataFrame.iloc[2]

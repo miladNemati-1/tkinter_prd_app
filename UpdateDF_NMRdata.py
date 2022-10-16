@@ -11,8 +11,10 @@ from time import sleep
 
 
 def _findreadNMRcsvfile(csvdirectory, WARNING_TIMER=15):
+    print(csvdirectory)
     searching = True
     csvdirectory = '{}.csv'.format(csvdirectory)
+    print(csvdirectory)
     timer = 0
     while searching:
         if Path(csvdirectory).exists():
@@ -51,6 +53,7 @@ def updateDF_Mnth(soldf: DataFrame, conv):
 
 
 def updateDF_conversion(vinyl, reference, solutionDF):
+    print(solutionDF)
 
     mol_init_monomer = solutionDF.iloc[1]['moles (mol)']
     mol_init_solvent = solutionDF.iloc[3]['moles (mol)']
@@ -85,6 +88,18 @@ def updateDF_conversion(vinyl, reference, solutionDF):
     vinyl_experimental = factor * integration_vinyl
 
     conv = 1-(vinyl_experimental/t0_vinyl)
+    print("conversion")
+    print(conv)
+
+    return conv
+
+
+def updateDF_conversion_monomer(vinyl, reference, solutionDF):
+    print(solutionDF)
+
+    conv = 1-((vinyl/2)/(vinyl/3))
+    print("conversion_monomer")
+    print(conv)
 
     return conv
 
@@ -141,7 +156,7 @@ def updateDF_integrals(experimentDF: DataFrame, csvdirectory: str, csv_file_name
             experimentDF.at[index, integralcolumn] = float(
                 integrals[integralcolumn])
 
-        conversion = updateDF_conversion(
+        conversion = updateDF_conversion_monomer(
             experimentDF.iloc[index][vinyl], experimentDF.iloc[index][reference], solution_DF)
         experimentDF.at[index, 'conversion'] = float(conversion)
 
