@@ -134,8 +134,6 @@ class View(tk.Tk):
         self._make_conversion_screen()
         self._get_user_names()
         self._make_NMRGPC_initialisation_tab()
-        # self._create_experiment_upload_screen()
-        # self._upload_results_pop_up()
 
     def main(self):
         self.tab.select(self.welcome_tab)
@@ -797,7 +795,7 @@ class View(tk.Tk):
         default_value = tk.StringVar()
         default_value.set(val_list[0])
         self.Experiment = tk.OptionMenu(
-            self.Upload_Screen, default_value, *self.dict_id_list.values(), command=self.get_experiment_pk_for_data_upload)
+            self.experiment_upload_frame_top, default_value, *self.dict_id_list.values(), command=self.get_experiment_pk_for_data_upload)
         self.Experiment.grid(row=6,  column=3)
 
     def get_experiment_pk_for_data_upload(self, v):
@@ -825,17 +823,17 @@ class View(tk.Tk):
                 `experiment_id`=%s"
         a = my_conn.execute(
             retrieve_query, my_retrieval_data)
-        print("set down")
+
         self.measurement_pk = a.all()[0][0]
-        print(self.measurement_pk)
 
     def csv_to_array(self):
 
         f = open(self.filename)
 
         csv_path_split_array = f.name.split("/")
+        print(csv_path_split_array)
 
-        csv_path = csv_path_split_array[6]
+        csv_path = csv_path_split_array[-1]
 
         data = pd.read_csv(f, encoding='UTF-8')
         is_approved = 1
@@ -868,27 +866,27 @@ class View(tk.Tk):
         # Change label contents
         self.label_file_explorer.configure(
             text="File Opened: " + self.filename)
-        self.get_measurement_pk_for_measurement_id_of_data()
+        # self.get_experiment_pk_for_data_upload(self.pk)
 
     def _create_experiment_upload_screen(self):
 
-        experiment_upload_frame = Tk.geometry("750x270")
-        experiment_upload_frame_top = Toplevel(experiment_upload_frame)
-        experiment_upload_frame_top.title("Select File for data upload")
+        self.experiment_upload_frame_top = Toplevel()
+
+        self.experiment_upload_frame_top.title("Select File for data upload")
         button = ttk.Button(
-            experiment_upload_frame_top, text="Connection Status", command=self.db_connect)
+            self.experiment_upload_frame_top, text="Connection Status", command=self.db_connect)
         button.grid(row=0, column=3)
 
-        self.label = ttk.Label(experiment_upload_frame_top, text="")
+        self.label = ttk.Label(self.experiment_upload_frame_top, text="")
         self.label.grid(row=1, column=3)
 
-        self.label_file_explorer = tk.Label(experiment_upload_frame_top,
+        self.label_file_explorer = tk.Label(self.experiment_upload_frame_top,
                                             text="File path")
-        button_explore = ttk.Button(experiment_upload_frame_top,
+        button_explore = ttk.Button(self.experiment_upload_frame_top,
                                     text="Browse Files",
                                     command=self.browseFiles)
 
-        upload_button = ttk.Button(experiment_upload_frame_top,
+        upload_button = ttk.Button(self.experiment_upload_frame_top,
                                    text="Upload CSV file",
                                    command=self.upload)
         self.label_file_explorer.grid(row=7, column=3)
@@ -898,56 +896,56 @@ class View(tk.Tk):
         upload_button.grid(row=9, column=3)
 
     def _upload_results_pop_up(self):
-        self.pop_up_frame = Tk.geometry("750x270")
-        self.pop_up_frame_top = Toplevel(self.pop_up_frame)
+        self.pop_up_frame_top = Toplevel()
+        self.pop_up_frame_top.geometry("750x270")
         self.pop_up_frame_top.title("Select User for upload")
 
         pop_up_upload_frame = tk.Frame(
-            self.pop_up_frame_top, bg='white', width=1000, height=50, pady=3, padx=400)
-        pop_up_upload_frame.grid(row=0, sticky="ew")
+            self.pop_up_frame_top, bg='white', width=100, height=50, pady=3, padx=100)
+        pop_up_upload_frame.grid()
 
         options = tk.StringVar(pop_up_upload_frame)
         options.set("Choose")  # default value
 
-        user_label = tk.Label(self.pop_up_frame_top,  text='User',
+        user_label = tk.Label(pop_up_upload_frame,  text='User',
                               font=('Helvetica', 16), width=30, anchor="c")
-        user_label.grid(row=0, column=10, columnspan=4)
+        user_label.grid(row=0, column=0, columnspan=4)
 
         user_options_menu = tk.OptionMenu(
-            self.pop_up_frame_top, options, *self.dict_a.values(), command=self.get_user_experiments)
+            pop_up_upload_frame, options, *self.dict_a.values(), command=self.get_user_experiments)
         user_options_menu.configure(width=30)
-        user_options_menu.grid(row=1, column=10)
+        user_options_menu.grid(row=1, column=0)
 
-        self.name_label = tk.Label(self.pop_up_frame_top,  text='Experiment Name',
+        self.name_label = tk.Label(pop_up_upload_frame,  text='Experiment Name',
                                    font=('Helvetica', 16), width=30, anchor="c")
-        self.name_label.grid(row=2, column=10, columnspan=5)
+        self.name_label.grid(row=2, column=0, columnspan=5)
 
-        self.experiment_name_en = tk.Entry(self.pop_up_frame_top,
+        self.experiment_name_en = tk.Entry(pop_up_upload_frame,
                                            font=FONTS['FONT_ENTRY'], width=30)
-        self.experiment_name_en.grid(row=3, column=10)
+        self.experiment_name_en.grid(row=3, column=0)
 
-        self.temperature_label = tk.Label(self.pop_up_frame_top,  text='Temperature',
+        self.temperature_label = tk.Label(pop_up_upload_frame,  text='Temperature',
                                           font=('Helvetica', 16), width=30, anchor="c")
-        self.temperature_label.grid(row=4, column=10, columnspan=4)
+        self.temperature_label.grid(row=4, column=0, columnspan=4)
 
-        self.temperature_en = tk.Entry(self.pop_up_frame_top,
+        self.temperature_en = tk.Entry(pop_up_upload_frame,
                                        font=FONTS['FONT_ENTRY'], width=30)
-        self.temperature_en.grid(row=5, column=10)
-        self.volume_label = tk.Label(self.pop_up_frame_top,  text='Volume',
+        self.temperature_en.grid(row=5, column=0)
+        self.volume_label = tk.Label(pop_up_upload_frame,  text='Volume',
                                      font=('Helvetica', 16), width=30, anchor="c")
-        self.volume_label.grid(row=6, column=10, columnspan=4)
+        self.volume_label.grid(row=6, column=0, columnspan=4)
 
-        self.volume_en = tk.Entry(self.pop_up_frame_top,
+        self.volume_en = tk.Entry(pop_up_upload_frame,
                                   font=FONTS['FONT_ENTRY'], width=30)
-        self.volume_en.grid(row=7, column=10)
+        self.volume_en.grid(row=7, column=0)
 
-        upload_button = tk.Button(self.pop_up_frame_top,  text='Add Record', width=10,
+        upload_button = tk.Button(pop_up_upload_frame,  text='Add New Experiment to Database', width=10,
                                   command=lambda: self.add_experiment_data())
-        upload_button.grid(row=8, column=10)
+        upload_button.grid(row=8, column=0)
         self.my_str = tk.StringVar()
-        l5 = tk.Label(self.pop_up_frame_top,
+        l5 = tk.Label(pop_up_upload_frame,
                       textvariable=self.my_str, width=10)
-        l5.grid(row=9, column=10)
+        l5.grid(row=9, column=0)
         self.my_str.set("Output")
 
     def add_experiment_data(self):
@@ -990,7 +988,6 @@ class View(tk.Tk):
 
             self.get_user_experiments(self.v)
             self.pop_up_frame_top.destroy()
-            self._create_experiment_upload_screen()
 
         else:
             self.temperature_label.config(fg='red')   # foreground color
@@ -1149,6 +1146,8 @@ class View(tk.Tk):
                     '{}/{}_data.csv'.format(self.experiment_extra.loc[0, 'Mainfolder'], code))
             except:
                 pass
+        self._upload_results_pop_up()
+        self._create_experiment_upload_screen()
 
         print('End of Experiment')
 

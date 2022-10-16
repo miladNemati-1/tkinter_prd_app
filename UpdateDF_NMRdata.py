@@ -52,7 +52,7 @@ def updateDF_Mnth(soldf: DataFrame, conv):
     return Mntheor
 
 
-def updateDF_conversion(vinyl, reference, solutionDF):
+def updateDF_conversion_backup(reference, vinyl, solutionDF):
     print(solutionDF)
 
     mol_init_monomer = solutionDF.iloc[1]['moles (mol)']
@@ -94,11 +94,9 @@ def updateDF_conversion(vinyl, reference, solutionDF):
     return conv
 
 
-def updateDF_conversion_monomer(vinyl, reference, solutionDF):
-    print(solutionDF)
-
-    conv = 1-((vinyl/2)/(vinyl/3))
-    print("conversion_monomer")
+def updateDF_conversion(vinyl, reference, solutionDF):
+    conv = 1-((vinyl/2)/(reference/2))
+    print("conversion")
     print(conv)
 
     return conv
@@ -156,7 +154,7 @@ def updateDF_integrals(experimentDF: DataFrame, csvdirectory: str, csv_file_name
             experimentDF.at[index, integralcolumn] = float(
                 integrals[integralcolumn])
 
-        conversion = updateDF_conversion_monomer(
+        conversion = updateDF_conversion(
             experimentDF.iloc[index][vinyl], experimentDF.iloc[index][reference], solution_DF)
         experimentDF.at[index, 'conversion'] = float(conversion)
 
