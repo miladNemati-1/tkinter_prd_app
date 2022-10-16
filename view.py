@@ -134,6 +134,8 @@ class View(tk.Tk):
         self._make_conversion_screen()
         self._get_user_names()
         self._make_NMRGPC_initialisation_tab()
+        self._upload_results_pop_up()
+        self._create_experiment_upload_screen()
 
     def main(self):
         self.tab.select(self.welcome_tab)
@@ -897,7 +899,7 @@ class View(tk.Tk):
 
     def _upload_results_pop_up(self):
         self.pop_up_frame_top = Toplevel()
-        self.pop_up_frame_top.geometry("750x270")
+        self.pop_up_frame_top.geometry("650x550")
         self.pop_up_frame_top.title("Select User for upload")
 
         pop_up_upload_frame = tk.Frame(
@@ -924,28 +926,52 @@ class View(tk.Tk):
                                            font=FONTS['FONT_ENTRY'], width=30)
         self.experiment_name_en.grid(row=3, column=0)
 
+        self.monomer_label = tk.Label(pop_up_upload_frame,  text='Monomer Used',
+                                      font=('Helvetica', 16), width=30, anchor="c")
+        self.monomer_label.grid(row=4, column=0, columnspan=5)
+
+        self.monomer_name_en = tk.Entry(pop_up_upload_frame,
+                                        font=FONTS['FONT_ENTRY'], width=30)
+        self.monomer_name_en.grid(row=5, column=0)
+
+        self.CTA_label = tk.Label(pop_up_upload_frame,  text='CTA Used',
+                                  font=('Helvetica', 16), width=30, anchor="c")
+        self.CTA_label.grid(row=6, column=0, columnspan=5)
+
+        self.CTA_name_en = tk.Entry(pop_up_upload_frame,
+                                    font=FONTS['FONT_ENTRY'], width=30)
+        self.CTA_name_en.grid(row=7, column=0)
+
+        self.Cx_ratio_label = tk.Label(pop_up_upload_frame,  text='Cx/Cm Ratio',
+                                       font=('Helvetica', 16), width=30, anchor="c")
+        self.Cx_ratio_label.grid(row=8, column=0, columnspan=5)
+
+        self.Cx_ratio_en = tk.Entry(pop_up_upload_frame,
+                                    font=FONTS['FONT_ENTRY'], width=30)
+        self.Cx_ratio_en.grid(row=9, column=0)
+
         self.temperature_label = tk.Label(pop_up_upload_frame,  text='Temperature',
                                           font=('Helvetica', 16), width=30, anchor="c")
-        self.temperature_label.grid(row=4, column=0, columnspan=4)
+        self.temperature_label.grid(row=10, column=0, columnspan=4)
 
         self.temperature_en = tk.Entry(pop_up_upload_frame,
                                        font=FONTS['FONT_ENTRY'], width=30)
-        self.temperature_en.grid(row=5, column=0)
+        self.temperature_en.grid(row=11, column=0)
         self.volume_label = tk.Label(pop_up_upload_frame,  text='Volume',
                                      font=('Helvetica', 16), width=30, anchor="c")
-        self.volume_label.grid(row=6, column=0, columnspan=4)
+        self.volume_label.grid(row=12, column=0, columnspan=4)
 
         self.volume_en = tk.Entry(pop_up_upload_frame,
                                   font=FONTS['FONT_ENTRY'], width=30)
-        self.volume_en.grid(row=7, column=0)
+        self.volume_en.grid(row=13, column=0)
 
-        upload_button = tk.Button(pop_up_upload_frame,  text='Add New Experiment to Database', width=10,
+        upload_button = tk.Button(pop_up_upload_frame,  text='Add to Database', width=10,
                                   command=lambda: self.add_experiment_data())
-        upload_button.grid(row=8, column=0)
+        upload_button.grid(row=14, column=0)
         self.my_str = tk.StringVar()
         l5 = tk.Label(pop_up_upload_frame,
                       textvariable=self.my_str, width=10)
-        l5.grid(row=9, column=0)
+        l5.grid(row=15, column=0)
         self.my_str.set("Output")
 
     def add_experiment_data(self):
@@ -957,8 +983,11 @@ class View(tk.Tk):
         self.exp_name = self.experiment_name_en.get()
         self.temperature = self.temperature_en.get()
         self.volume = self.volume_en.get()
+        self.CA = self.CTA_name_en.get()
+        self.monomer = self.monomer_name_en.get()
+        self.CxCm = self.Cx_ratio_en.get()
 
-        print(f"date: {self.date}, time: {self.time} , name: {self.exp_name}, temperature: {self.temperature}, volume: {self.volume}, user_id: {self.wanted_user_id}")
+        print(f"date: {self.date}, time: {self.time} , name: {self.exp_name}, temperature: {self.temperature}, volume: {self.volume}, user_id: {self.wanted_user_id}, monomer: {self.monomer}, CA: {self.CA}, Cx/Cm {self.CxCm}")
 
         if (len(self.exp_name)) < 2:
             flag_validation = False
@@ -971,15 +1000,15 @@ class View(tk.Tk):
         if (flag_validation):
 
             # upload experiment
-            query = "INSERT INTO  `experiments_experiment` (`date` ,`time` ,`name` ,`temperature`, total_volume,user_id) \
-                VALUES(%s,%s,%s,%s,%s,%s)"
+            query = "INSERT INTO  `experiments_experiment` (`date` ,`time` ,`name` ,`temperature`, `total_volume`,`user_id`,`monomer`, `CTA`, `cx_ratio` ) \
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
             my_data = (self.date, self.time, self.exp_name,
-                       self.temperature, self.volume, self.wanted_user_id)
+                       self.temperature, self.volume, self.wanted_user_id, self.monomer, self.CA, self.CxCm)
 
-            my_retrieval_data = (self.exp_name, self.date, self.temperature, self.volume
+            my_retrieval_data = (self.exp_name, self.date, self.temperature, self.volume, self.monomer, self.CA,  self.CxCm
                                  )
             retrieve_query = "SELECT id FROM  `experiments_experiment` WHERE `name`=%s AND `date`=%s AND `temperature`=%s AND \
-                `total_volume`=%s"
+                `total_volume`=%s AND `monomer`=%s AND `CTA`=%s AND `cx_ratio`=%s"
             ex = my_conn.execute(query, my_data)
             row_id = my_conn.execute(retrieve_query, my_retrieval_data)
 
@@ -1146,8 +1175,6 @@ class View(tk.Tk):
                     '{}/{}_data.csv'.format(self.experiment_extra.loc[0, 'Mainfolder'], code))
             except:
                 pass
-        self._upload_results_pop_up()
-        self._create_experiment_upload_screen()
 
         print('End of Experiment')
 
