@@ -31,6 +31,7 @@ col_names_parameters = ['Start_min', 'Stop_min', 'Volume', 'StartFR', 'StopFR', 
 TIMESWEEP_PARAMETERS = pd.DataFrame(columns=col_names_parameters)
 
 DRIVE = 'S'
-FOLDERS = {'COMMUNICATION': "Z:/Sci-Chem/PRD/NMR 112/Automated Platform/Final_LabView_allVIs/PythonCommunication",
+FOLDERS = {'COMMUNICATION': "/Volumes/Sci-Chem/PRD/NMR 112/Automated Platform/Final_LabView_allVIs/PythonCommunication",
            'GPC': '{}:/Sci-Chem/PRD/GPC 112/2018-March/Projects'.format(DRIVE),
-           'NMR': 'C:/PROJECTS/DATA'}
+           'NMR': '/Users/miladnemati/Desktop/NMR/2022',
+           'Results': '/Volumes/Sci-Chem/PRD/NMR 112/Automated Platform'}

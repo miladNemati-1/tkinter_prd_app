@@ -32,6 +32,7 @@ from tkinter import ttk
 from tkinter import filedialog
 import os
 import pandas as pd
+from ExperimentFolder import findexperimentcsvfile
 
 
 from code_extra.log_method import setup_logger
@@ -828,23 +829,26 @@ class View(tk.Tk):
 
         self.measurement_pk = a.all()[0][0]
 
-    def csv_to_array(self):
-
-        f = open(self.filename)
-
-        csv_path_split_array = f.name.split("/")
-        print(csv_path_split_array)
-
-        csv_path = csv_path_split_array[-1]
-
+    def csv_to_GPC_table(self, f):
         data = pd.read_csv(f, encoding='UTF-8')
-        is_approved = 1
-        device_id = 1
-        self.add_upload_to_measurement(
-            csv_path, is_approved, device_id, self.pk)
-        print("executed")
+        data_conv = data[['tres_GPC', 'D', 'Mn',
+                          'Mw', 'Mn theory']]
+        data_conv['measurement_id'] = self.measurement_pk
+
+        data_conv = data_conv.dropna()
+
+        data['tres_GPC'] = data_conv.apply(
+            lambda row: timedelta(minutes=float(row.tres_GPC)).total_seconds(), axis=1)
+
+        data_conv.to_sql('measurements_GPC_data', my_conn,
+                         if_exists='append', index=False, method='multi')
+        return
+
+    def csv_to_table_nmr(self, f):
+        data = pd.read_csv(f, encoding='UTF-8')
 
         data_conv = data[['conversion', 'tres']]
+        data_conv = data_conv.dropna()
 
         data_conv['tres'] = data_conv.apply(
             lambda row: timedelta(minutes=float(row.tres)).total_seconds(), axis=1)
@@ -856,10 +860,21 @@ class View(tk.Tk):
         data_conv.to_sql('measurements_data', my_conn,
                          if_exists='append', index=False, method='multi')
 
-        return data_conv
-
     def upload(self):
-        self.csv_to_array()
+        # uploads GPC and NMR data to the database
+        f = open(self.filename)
+        a = open(self.filename)
+        csv_path_split_array = f.name.split("/")
+        csv_path = csv_path_split_array[-1]
+        is_approved = 1
+        device_id = 1
+        self.add_upload_to_measurement(
+            csv_path, is_approved, device_id, self.pk)
+
+        self.csv_to_table_nmr(f)
+        print("csv uploaded to nmr")
+        self.csv_to_GPC_table(a)
+        print("GPC uploaded to database")
 
     def browseFiles(self):
         self.f_types = [('CSV files', "*.csv"), ('All', "*.*")]
@@ -892,6 +907,12 @@ class View(tk.Tk):
                                    text="Upload CSV file",
                                    command=self.upload)
         self.label_file_explorer.grid(row=7, column=3)
+        try:
+            self.filename = self.csvprefill
+        except:
+            self.filename = '/'
+        self.label_file_explorer.configure(
+            text="File Opened: " + self.filename)
 
         button_explore.grid(row=8, column=3)
 
@@ -925,6 +946,8 @@ class View(tk.Tk):
         self.experiment_name_en = tk.Entry(pop_up_upload_frame,
                                            font=FONTS['FONT_ENTRY'], width=30)
         self.experiment_name_en.grid(row=3, column=0)
+
+        self.experiment_name_en.insert(END, self.code_en.get())
 
         self.monomer_label = tk.Label(pop_up_upload_frame,  text='Monomer Used',
                                       font=('Helvetica', 16), width=30, anchor="c")
@@ -988,12 +1011,16 @@ class View(tk.Tk):
         self.CxCm = self.Cx_ratio_en.get()
 
         print(f"date: {self.date}, time: {self.time} , name: {self.exp_name}, temperature: {self.temperature}, volume: {self.volume}, user_id: {self.wanted_user_id}, monomer: {self.monomer}, CA: {self.CA}, Cx/Cm {self.CxCm}")
+        print((len(self.monomer)))
+        print(len(self.CA))
 
-        if (len(self.exp_name)) < 2:
+        if (len(self.exp_name)) < 2 and (len(self.CA) < 1) and (len(self.monomer) < 1):
             flag_validation = False
         try:
             temp_val = int(self.temperature)  # checking mark as integer
             volume_val = int(self.volume)
+            CxCm = float(self.CxCm)
+
         except:
             flag_validation = False
 
@@ -1025,6 +1052,12 @@ class View(tk.Tk):
             self.volume_label.config(bg='yellow')  # background color
             self.name_label.config(fg='red')
             self.name_label.config(bg='yellow')
+            self.Cx_ratio_label.config(bg='yellow')
+            self.Cx_ratio_label.config(fg='red')
+            self.CTA_label.config(bg='yellow')
+            self.CTA_label.config(fg='red')
+            self.monomer_label.config(bg='yellow')
+            self.monomer_label.config(fg='red')
             self.my_str.set("check inputs.")
 
     def _get_user_names(self):
@@ -1091,6 +1124,10 @@ class View(tk.Tk):
             return newfolderGPC, newfolderTimesweepdata, newfolderRawGPC
 
     def startexp(self):
+
+        search = findexperimentcsvfile.CSVFileFinder(self.code_en.get())
+        self.csvprefill = search.find_experiment_path()
+        print(self.csvprefill)
 
         nmr_interval = self.parametersDF.loc[0, 'NMR interval']
         code = self.experiment_extra.loc[0, 'code']
@@ -1175,7 +1212,8 @@ class View(tk.Tk):
                     '{}/{}_data.csv'.format(self.experiment_extra.loc[0, 'Mainfolder'], code))
             except:
                 pass
-
+        self._upload_results_pop_up()
+        self._create_experiment_upload_screen()
         print('End of Experiment')
 
     def check_experimentFoldertxtfile(self, expfolder, exp_code):

@@ -88,8 +88,6 @@ def updateDF_conversion_backup(reference, vinyl, solutionDF):
     vinyl_experimental = factor * integration_vinyl
 
     conv = 1-(vinyl_experimental/t0_vinyl)
-    print("conversion")
-    print(conv)
 
     return conv
 
