@@ -21,14 +21,19 @@ class CSVFileFinder:
         results_path = Constants.FOLDERS['Results']
         curr_time_path = f"/{str(current_time.year)}/{str(current_time.month)}/{str(current_time.day)}/"
         search_path = results_path+curr_time_path
+        print(search_path)
         return self.search_for_experiment_folder(search_path)
 
     def search_for_experiment_folder(self, foldersearchpath):
         for folder in os.listdir(foldersearchpath):
             if folder.split("_")[-1] == self.experiment_name:
+                ("fff")
+                print(f"{foldersearchpath}/{folder}")
                 return self.find_csv_file(f"{foldersearchpath}/{folder}")
 
     def find_csv_file(self, csvsearchpath):
+        print("csvsearchpath")
+        print(csvsearchpath)
         for file in os.listdir(csvsearchpath):
             if file.split("_")[0] == self.experiment_name:
                 print("csv found")

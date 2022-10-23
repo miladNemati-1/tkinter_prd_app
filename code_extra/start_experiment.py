@@ -19,6 +19,7 @@ import UpdateDF_GPCdata
 import UpdateDF_NMRdata
 import UpdateDF_NMRdata_v2
 from code_extra.defining_folder import defining_PsswinFolder
+from code_extra.Constants import FOLDERS
 
 
 logger = setup_logger('Start Experiment')
@@ -95,8 +96,8 @@ def SearchForNMRfolder(extras_file, WARNING_TIMER=30):
 
     extrasDF = pd.read_csv(extras_file)
     code = extrasDF.loc[0, 'code']
-    # NMRFolder = extrasDF.loc[0, 'NMR']
-    NMRFolder = "/Users/miladnemati/Desktop/NMR"
+    NMRFolder = FOLDERS['NMR']
+    # NMRFolder = "/Users/miladnemati/Desktop/NMR"
 
     timer = 0
 

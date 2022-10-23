@@ -93,9 +93,7 @@ def updateDF_conversion_backup(reference, vinyl, solutionDF):
 
 
 def updateDF_conversion(vinyl, reference, solutionDF):
-    conv = 1-((vinyl/2)/(reference/2))
-    print("conversion")
-    print(conv)
+    conv = 1-((vinyl/3)/(reference/2))
 
     return conv
 

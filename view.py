@@ -135,8 +135,9 @@ class View(tk.Tk):
         self._make_conversion_screen()
         self._get_user_names()
         self._make_NMRGPC_initialisation_tab()
-        self._upload_results_pop_up()
-        self._create_experiment_upload_screen()
+        # self._upload_results_pop_up()
+        # self._create_experiment_upload_screen()
+
 
     def main(self):
         self.tab.select(self.welcome_tab)
@@ -826,8 +827,11 @@ class View(tk.Tk):
                 `experiment_id`=%s"
         a = my_conn.execute(
             retrieve_query, my_retrieval_data)
+        for item in a:
+            self.measurement_pk = item[0]
+        
 
-        self.measurement_pk = a.all()[0][0]
+        # self.measurement_pk = a.all()[0][0]
 
     def csv_to_GPC_table(self, f):
         data = pd.read_csv(f, encoding='UTF-8')
@@ -911,8 +915,8 @@ class View(tk.Tk):
             self.filename = self.csvprefill
         except:
             self.filename = '/'
-        self.label_file_explorer.configure(
-            text="File Opened: " + self.filename)
+            self.label_file_explorer.configure(
+                text="File Opened: " + self.filename)
 
         button_explore.grid(row=8, column=3)
 
@@ -1124,9 +1128,14 @@ class View(tk.Tk):
             return newfolderGPC, newfolderTimesweepdata, newfolderRawGPC
 
     def startexp(self):
+        print("experiment name")
+        print(self.code_en.get())
+
+        
 
         search = findexperimentcsvfile.CSVFileFinder(self.code_en.get())
         self.csvprefill = search.find_experiment_path()
+        print("path csv")
         print(self.csvprefill)
 
         nmr_interval = self.parametersDF.loc[0, 'NMR interval']
@@ -1142,6 +1151,7 @@ class View(tk.Tk):
 
         vals = starting(self.ExperimentFolder)
         NMRfolder = vals[0]
+        print(NMRfolder)
         expDF = vals[1]
 
         expDF_directory = '{}/{}_Experiment'.format(
@@ -1212,9 +1222,10 @@ class View(tk.Tk):
                     '{}/{}_data.csv'.format(self.experiment_extra.loc[0, 'Mainfolder'], code))
             except:
                 pass
+        print('End of Experiment')
         self._upload_results_pop_up()
         self._create_experiment_upload_screen()
-        print('End of Experiment')
+
 
     def check_experimentFoldertxtfile(self, expfolder, exp_code):
         directory_code = os.path.basename(expfolder).split('_')[-1]
