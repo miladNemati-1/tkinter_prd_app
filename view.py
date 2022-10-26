@@ -1,3 +1,4 @@
+from asyncio import constants
 from ctypes import alignment
 from re import S
 from turtle import pen, width
@@ -24,6 +25,7 @@ from datetime import timedelta
 import os
 import save_plots
 import UpdateDF_NMRdata
+from code_extra import Constants
 
 from pathlib import Path
 from sys import exec_prefix
@@ -137,7 +139,6 @@ class View(tk.Tk):
         self._make_NMRGPC_initialisation_tab()
         # self._upload_results_pop_up()
         # self._create_experiment_upload_screen()
-
 
     def main(self):
         self.tab.select(self.welcome_tab)
@@ -481,6 +482,9 @@ class View(tk.Tk):
         logger.info(
             'Experiment will take {} minutes; +/- {} mL reaction solution is needed.'.format(total_time, totalvolume))
 
+    def _set_conversion_formula(self, monomer_key):
+        Constants.Conversion_values = Constants.Monomer_Conversion[monomer_key]
+
     def _make_conversion_screen(self):
 
         self.NMRGPC_top_frame_conv = tk.Frame(
@@ -513,6 +517,16 @@ class View(tk.Tk):
                                               variable=self.Conversion_option_NMRGPC, value="Monomer",
                                               command=self.select_monomer)
         monomer_radio_NMRGPC.grid()
+        options = tk.StringVar(self.tab_NMRGPC_Conversion)
+        options.set("Choose")  # default value
+        monomer_options_label = tk.Label(self.tab_NMRGPC_Conversion,  text='Monomer Options',
+                                         font=('Helvetica', 16), width=30, anchor="c")
+        monomer_options_label.grid()
+
+        monomer_options_menu = tk.OptionMenu(
+            self.tab_NMRGPC_Conversion, options, *Constants.Monomer_Conversion.keys(), command=lambda key=options: self._set_conversion_formula(key))
+        monomer_options_menu.grid()
+        print(options.get())
 
         solvent_radio_NMRGPC = tk.Radiobutton(self.tab_NMRGPC_Conversion, text="Solvent (Butyl Acetate)",
                                               font=FONTS[
@@ -829,7 +843,6 @@ class View(tk.Tk):
             retrieve_query, my_retrieval_data)
         for item in a:
             self.measurement_pk = item[0]
-        
 
         # self.measurement_pk = a.all()[0][0]
 
@@ -1047,7 +1060,7 @@ class View(tk.Tk):
             # use primary keu for data insersion
 
             self.get_user_experiments(self.v)
-            self.pop_up_frame_top.destroy()
+            # self.pop_up_frame_top.destroy()
 
         else:
             self.temperature_label.config(fg='red')   # foreground color
@@ -1130,8 +1143,6 @@ class View(tk.Tk):
     def startexp(self):
         print("experiment name")
         print(self.code_en.get())
-
-        
 
         search = findexperimentcsvfile.CSVFileFinder(self.code_en.get())
         self.csvprefill = search.find_experiment_path()
@@ -1225,7 +1236,6 @@ class View(tk.Tk):
         print('End of Experiment')
         self._upload_results_pop_up()
         self._create_experiment_upload_screen()
-
 
     def check_experimentFoldertxtfile(self, expfolder, exp_code):
         directory_code = os.path.basename(expfolder).split('_')[-1]

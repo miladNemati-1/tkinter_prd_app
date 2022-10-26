@@ -6,6 +6,7 @@ from pandas.core.frame import DataFrame
 from read_NMRcsv import NMRcsvfile
 from pathlib import Path
 from time import sleep
+from code_extra import Constants
 
 #experimentDF = pd.read_csv('experiment_DF_test.csv')
 
@@ -93,7 +94,10 @@ def updateDF_conversion_backup(reference, vinyl, solutionDF):
 
 
 def updateDF_conversion(vinyl, reference, solutionDF):
-    conv = 1-((vinyl/3)/(reference/2))
+
+    vinyl_protons = Constants.Conversion_values['monomer peak']
+    polymers_protons = Constants.Conversion_values['polymer peak']
+    conv = 1-((vinyl/vinyl_protons)/(reference/polymers_protons))
 
     return conv
 

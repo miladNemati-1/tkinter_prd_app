@@ -30,8 +30,23 @@ col_names_parameters = ['Start_min', 'Stop_min', 'Volume', 'StartFR', 'StopFR', 
                         'DeadVolume3', 'NMRInterval', 'GPCInterval', 'DilutionFR', 'DeadVolume1(min)', 'DeadVolume2(min)', 'DeadVolume3(min)', 'Mode']
 TIMESWEEP_PARAMETERS = pd.DataFrame(columns=col_names_parameters)
 
+
+# Windows
+# DRIVE = 'S'
+# FOLDERS = {'COMMUNICATION': "Z:/Sci-Chem/PRD/NMR 112/Automated Platform/Final_LabView_allVIs/PythonCommunication",
+#            'GPC': 'Z:/Sci-Chem/PRD/GPC 112/2018-March/Projects',
+#            'NMR': 'C:/PROJECTS/DATA',
+#            'Results': 'Z:/Sci-Chem/PRD/NMR 112/Automated Platform'}
+
+# MAC
 DRIVE = 'S'
-FOLDERS = {'COMMUNICATION': "Z:/Sci-Chem/PRD/NMR 112/Automated Platform/Final_LabView_allVIs/PythonCommunication",
-           'GPC': 'Z:/Sci-Chem/PRD/GPC 112/2018-March/Projects',
-           'NMR': 'C:/PROJECTS/DATA',
-           'Results': 'Z:/Sci-Chem/PRD/NMR 112/Automated Platform'}
+FOLDERS = {'COMMUNICATION': '/Users/miladnemati/Desktop/NMR',
+           'GPC': '/Users/miladnemati/Desktop/NMR',
+           'NMR': '/Users/miladnemati/Desktop/NMR',
+           'Results': '/Users/miladnemati/Desktop/NMR'}
+
+Monomer_Conversion = {"BA": {"monomer peak": 3, "polymer peak": 2}, "EA": {"monomer peak": 3, "polymer peak": 2}, "MA": {
+    "monomer peak": 3, "polymer peak": 3}, "MMA": {"monomer peak": 2, "polymer peak": 3}}
+
+
+Conversion_values = {'monomer_peak': 1, 'polymer_peak': 1}
