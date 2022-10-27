@@ -136,8 +136,8 @@ class View(tk.Tk):
         self._make_conversion_screen()
         self._get_user_names()
         self._make_NMRGPC_initialisation_tab()
-        self._upload_results_pop_up()
-        self._create_experiment_upload_screen()
+        # self._upload_results_pop_up()
+        # self._create_experiment_upload_screen()
 
     def main(self):
         self.tab.select(self.welcome_tab)
