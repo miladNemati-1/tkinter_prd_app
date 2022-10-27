@@ -138,7 +138,6 @@ class View(tk.Tk):
         self._upload_results_pop_up()
         self._create_experiment_upload_screen()
 
-
     def main(self):
         self.tab.select(self.welcome_tab)
         self.mainloop()
@@ -513,6 +512,16 @@ class View(tk.Tk):
                                               variable=self.Conversion_option_NMRGPC, value="Monomer",
                                               command=self.select_monomer)
         monomer_radio_NMRGPC.grid()
+        options = tk.StringVar(self.tab_NMRGPC_Conversion)
+        options.set("Choose")  # default value
+        monomer_options_label = tk.Label(self.tab_NMRGPC_Conversion,  text='Monomer Options',
+                                         font=('Helvetica', 16), width=30, anchor="c")
+        monomer_options_label.grid()
+
+        monomer_options_menu = tk.OptionMenu(
+            self.tab_NMRGPC_Conversion, options, *Constants.Monomer_Conversion.keys(), command=lambda key=options: self._set_conversion_formula(key))
+        monomer_options_menu.grid()
+        print(options.get())
 
         solvent_radio_NMRGPC = tk.Radiobutton(self.tab_NMRGPC_Conversion, text="Solvent (Butyl Acetate)",
                                               font=FONTS[
@@ -829,7 +838,6 @@ class View(tk.Tk):
             retrieve_query, my_retrieval_data)
         for item in a:
             self.measurement_pk = item[0]
-        
 
         # self.measurement_pk = a.all()[0][0]
 
@@ -914,7 +922,7 @@ class View(tk.Tk):
         try:
             self.filename = self.csvprefill
             self.label_file_explorer.configure(
-            text="File Opened: " + self.filename)
+                text="File Opened: " + self.filename)
         except:
             self.filename = '/'
             self.label_file_explorer.configure(
@@ -955,23 +963,18 @@ class View(tk.Tk):
 
         self.experiment_name_en.insert(END, self.code_en.get())
 
-
-
-
         self.monomer_label = tk.Label(pop_up_upload_frame,  text='Monomer Used',
                                       font=('Helvetica', 16), width=30, anchor="c")
         self.monomer_label.grid(row=4, column=0, columnspan=5)
 
-
         self.monomer_list = ["MA", "EA", "MMA", "BA"]
 
         self.monomer_value = tk.StringVar(pop_up_upload_frame)
-        
+
         self.monomer_value.set("Choose a Monomer")
 
-
-
-        self.monomer_name_en = tk.OptionMenu(pop_up_upload_frame, self.monomer_value, *self.monomer_list)
+        self.monomer_name_en = tk.OptionMenu(
+            pop_up_upload_frame, self.monomer_value, *self.monomer_list)
 
         # self.monomer_name_en = tk.Entry(pop_up_upload_frame,
         #                                 font=FONTS['FONT_ENTRY'], width=30)
@@ -984,11 +987,11 @@ class View(tk.Tk):
         self.CTA_list = ["Dodecanethiol", "Carbon Tetrabromide"]
 
         self.CTA_value = tk.StringVar(pop_up_upload_frame)
-        
+
         self.CTA_value.set("Choose a CTA")
 
-
-        self.CTA_en = tk.OptionMenu(pop_up_upload_frame,self.CTA_value, *self.CTA_list)
+        self.CTA_en = tk.OptionMenu(
+            pop_up_upload_frame, self.CTA_value, *self.CTA_list)
 
         self.CTA_en.grid()
 
@@ -1154,10 +1157,6 @@ class View(tk.Tk):
         print("experiment name")
         print(self.code_en.get())
 
-        
-
-        
-
         nmr_interval = self.parametersDF.loc[0, 'NMR interval']
         code = self.experiment_extra.loc[0, 'code']
         mode = self.parametersDF.loc[0, 'mode']
@@ -1243,14 +1242,13 @@ class View(tk.Tk):
             except:
                 pass
         print('End of Experiment')
-        
+
         search = findexperimentcsvfile.CSVFileFinder(self.code_en.get())
         self.csvprefill = search.find_experiment_path()
         print("path csv")
         print(self.csvprefill)
         self._upload_results_pop_up()
         self._create_experiment_upload_screen()
-
 
     def check_experimentFoldertxtfile(self, expfolder, exp_code):
         directory_code = os.path.basename(expfolder).split('_')[-1]
