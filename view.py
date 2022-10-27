@@ -43,6 +43,7 @@ from code_extra.calculateScans import calculate_scans
 
 from code_extra.precheck import check_files, check_Emailconnection
 from code_extra.start_experiment import starting
+from code_extra import Constants
 
 
 from code_extra.start_experiment import starting, SearchForNMRfolder, CreateExpDF
