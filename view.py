@@ -481,6 +481,9 @@ class View(tk.Tk):
         logger.info(
             'Experiment will take {} minutes; +/- {} mL reaction solution is needed.'.format(total_time, totalvolume))
 
+    def _set_conversion_formula(self, monomer_key):
+        Constants.Conversion_values = Constants.Monomer_Conversion[monomer_key]
+
     def _make_conversion_screen(self):
 
         self.NMRGPC_top_frame_conv = tk.Frame(
