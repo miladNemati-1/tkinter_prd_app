@@ -5,15 +5,15 @@ import os
 # [entry (for entry field) , default, parameter name, unit, default value, change (for button)]
 SETUP_DEFAULT_VALUES_NMR = [['entry1', 'default1', 'Reactor Volume', 'mL', 0.90, 'change1'],
                             ['entry2', 'default2', 'Dead Volume 1',
-                                'mL', 0.32, 'change2'],
+                                'mL', 0.52, 'change2'],
                             ['entry3', 'default3', 'Dead Volume 2',
-                                'mL', 0.17, 'change3'],
+                                'mL', 0.21, 'change3'],
                             ['entry4', 'default4', 'Dead Volume 3',
                                 'mL', 0.17, 'change4'],
                             ['entry5', 'default5', 'NMR Interval',
                                 'sec', 17, 'change5'],
                             ['entry6', 'default6', 'GPC Interval',
-                                'minutes', 3, 'change6'],
+                                'minutes', 5, 'change6'],
                             ['entry7', 'default7', 'Stabilization factor',
                                 'x', 1.3, 'change7'],
                             ['entry8', 'default8', 'Dilution Flowrate', 'mL/min', 1.5, 'change8']]
@@ -33,17 +33,17 @@ TIMESWEEP_PARAMETERS = pd.DataFrame(columns=col_names_parameters)
 
 # Windows
 # DRIVE = 'S'
-# FOLDERS = {'COMMUNICATION': "Z:/Sci-Chem/PRD/NMR 112/Automated Platform/Final_LabView_allVIs/PythonCommunication",
-#            'GPC': 'Z:/Sci-Chem/PRD/GPC 112/2018-March/Projects',
-#            'NMR': 'C:/PROJECTS/DATA',
-#            'Results': 'Z:/Sci-Chem/PRD/NMR 112/Automated Platform'}
+FOLDERS = {'COMMUNICATION': "Z:/Sci-Chem/PRD/NMR 112/Automated Platform/Final_LabView_allVIs/PythonCommunication",
+           'GPC': 'Z:/Sci-Chem/PRD/GPC 112/2018-March/Projects',
+           'NMR': 'C:/PROJECTS/DATA',
+           'Results': 'Z:/Sci-Chem/PRD/NMR 112/Automated Platform'}
 
 # MAC
-DRIVE = 'S'
-FOLDERS = {'COMMUNICATION': '/Users/miladnemati/Desktop/NMR',
-           'GPC': '/Users/miladnemati/Desktop/NMR',
-           'NMR': '/Users/miladnemati/Desktop/NMR',
-           'Results': '/Users/miladnemati/Desktop/NMR'}
+# DRIVE = 'S'
+# FOLDERS = {'COMMUNICATION': '/Users/miladnemati/Desktop/NMR',
+#            'GPC': '/Users/miladnemati/Desktop/NMR',
+#            'NMR': '/Users/miladnemati/Desktop/NMR',
+#            'Results': '/Users/miladnemati/Desktop/NMR'}
 
 Monomer_Conversion = {"BA": {"monomer peak": 3, "polymer peak": 2}, "EA": {"monomer peak": 3, "polymer peak": 2}, "MA": {
     "monomer peak": 3, "polymer peak": 3}, "MMA": {"monomer peak": 2, "polymer peak": 3}}

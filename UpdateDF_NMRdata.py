@@ -96,7 +96,11 @@ def updateDF_conversion_backup(reference, vinyl, solutionDF):
 def updateDF_conversion(vinyl, reference, solutionDF):
 
     vinyl_protons = Constants.Conversion_values['monomer peak']
+    print(vinyl_protons)
+    print("vinyl_protons")
     polymers_protons = Constants.Conversion_values['polymer peak']
+    print(polymers_protons)
+    print("polymers_protons")
     conv = 1-((vinyl/vinyl_protons)/(reference/polymers_protons))
 
     return conv
