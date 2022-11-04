@@ -1194,7 +1194,7 @@ class View(tk.Tk):
             'Plotsfolder', 'GPCfolder', 'Infofolder', 'Rawfolder']]
         self.SearchCommunicationFolder(self.ExperimentFolder)
 
-        while analysis and end_counter < last_timesweep_row:
+        while analysis and end_counter < (last_timesweep_row +25):
             print("sleeps {}".format(nmr_interval))
             end_counter += 1
             sleep(nmr_interval)
