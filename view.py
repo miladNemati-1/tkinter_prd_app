@@ -135,9 +135,12 @@ class View(tk.Tk):
         self._make_timesweep_frame()
         self._make_conversion_screen()
         self._get_user_names()
+        self._get_monomers()
+        self._get_ctas()
+        self._get_initiators()
         self._make_NMRGPC_initialisation_tab()
-        # self._upload_results_pop_up()
-        # self._create_experiment_upload_screen()
+        self._upload_results_pop_up()
+        self._create_experiment_upload_screen()
 
     def main(self):
         self.tab.select(self.welcome_tab)
@@ -938,7 +941,7 @@ class View(tk.Tk):
 
     def _upload_results_pop_up(self):
         self.pop_up_frame_top = Toplevel()
-        self.pop_up_frame_top.geometry("650x550")
+        self.pop_up_frame_top.geometry("550x750")
         self.pop_up_frame_top.title("Select User for upload")
 
         pop_up_upload_frame = tk.Frame(
@@ -971,89 +974,121 @@ class View(tk.Tk):
                                       font=('Helvetica', 16), width=30, anchor="c")
         self.monomer_label.grid(row=4, column=0, columnspan=5)
 
-        self.monomer_list = ["MA", "EA", "MMA", "BA"]
-
         self.monomer_value = tk.StringVar(pop_up_upload_frame)
-
         self.monomer_value.set("Choose a Monomer")
 
         self.monomer_name_en = tk.OptionMenu(
-            pop_up_upload_frame, self.monomer_value, *self.monomer_list)
+            pop_up_upload_frame, self.monomer_value, *self.dict_monomers.values())
 
-        # self.monomer_name_en = tk.Entry(pop_up_upload_frame,
-        #                                 font=FONTS['FONT_ENTRY'], width=30)
         self.monomer_name_en.grid(row=5, column=0)
 
         self.CTA_label = tk.Label(pop_up_upload_frame,  text='CTA Used',
                                   font=('Helvetica', 16), width=30, anchor="c")
         self.CTA_label.grid(row=6, column=0, columnspan=5)
 
-        self.CTA_list = ["Dodecanethiol", "Carbon Tetrabromide"]
-
         self.CTA_value = tk.StringVar(pop_up_upload_frame)
 
         self.CTA_value.set("Choose a CTA")
 
         self.CTA_en = tk.OptionMenu(
-            pop_up_upload_frame, self.CTA_value, *self.CTA_list)
+            pop_up_upload_frame, self.CTA_value, *self.dict_ctas.values())
 
         self.CTA_en.grid()
+        ###
+        self.initiator_label = tk.Label(pop_up_upload_frame,  text='Initiator Used',
+                                        font=('Helvetica', 16), width=30, anchor="c")
+        self.initiator_label.grid(row=8, column=0, columnspan=5)
 
-        self.Cx_ratio_label = tk.Label(pop_up_upload_frame,  text='Cx/Cm Ratio',
-                                       font=('Helvetica', 16), width=30, anchor="c")
-        self.Cx_ratio_label.grid(row=8, column=0, columnspan=5)
+        self.Initiator_value = tk.StringVar(pop_up_upload_frame)
 
-        self.Cx_ratio_en = tk.Entry(pop_up_upload_frame,
-                                    font=FONTS['FONT_ENTRY'], width=30)
-        self.Cx_ratio_en.grid(row=9, column=0)
+        self.Initiator_value.set("Choose a Initiator")
 
-        self.temperature_label = tk.Label(pop_up_upload_frame,  text='Temperature',
+        self.Initiator_en = tk.OptionMenu(
+            pop_up_upload_frame, self.Initiator_value, *self.dict_inis.values())
+
+        self.Initiator_en.grid()
+        ###
+
+        self.CTA_concentration_label = tk.Label(pop_up_upload_frame,  text='Enter CTA Concentration',
+                                                font=('Helvetica', 16), width=30, anchor="c")
+        self.CTA_concentration_label.grid(row=10, column=0, columnspan=5)
+
+        self.CTA_concentration_en = tk.Entry(pop_up_upload_frame,
+                                             font=FONTS['FONT_ENTRY'], width=30)
+        self.CTA_concentration_en.grid(row=11, column=0)
+
+        self.Monomer_concentration_label = tk.Label(pop_up_upload_frame,  text='Enter Monomer Concentration',
+                                                    font=('Helvetica', 16), width=30, anchor="c")
+        self.Monomer_concentration_label.grid(row=12, column=0, columnspan=5)
+
+        self.Monomer_concentration_en = tk.Entry(pop_up_upload_frame,
+                                                 font=FONTS['FONT_ENTRY'], width=30)
+        self.Monomer_concentration_en.grid(row=13, column=0)
+
+        self.Initiator_concentration_label = tk.Label(pop_up_upload_frame,  text='Enter Initiator Concentration',
+                                                      font=('Helvetica', 16), width=30, anchor="c")
+        self.Initiator_concentration_label.grid(row=14, column=0, columnspan=5)
+
+        self.Initiator_concentration_en = tk.Entry(pop_up_upload_frame,
+                                                   font=FONTS['FONT_ENTRY'], width=30)
+        self.Initiator_concentration_en.grid(row=15, column=0)
+
+        self.temperature_label = tk.Label(pop_up_upload_frame,  text='Enter Temperature',
                                           font=('Helvetica', 16), width=30, anchor="c")
-        self.temperature_label.grid(row=10, column=0, columnspan=4)
+        self.temperature_label.grid(row=16, column=0, columnspan=4)
 
         self.temperature_en = tk.Entry(pop_up_upload_frame,
                                        font=FONTS['FONT_ENTRY'], width=30)
-        self.temperature_en.grid(row=11, column=0)
+        self.temperature_en.grid(row=17, column=0)
         self.volume_label = tk.Label(pop_up_upload_frame,  text='Volume',
                                      font=('Helvetica', 16), width=30, anchor="c")
-        self.volume_label.grid(row=12, column=0, columnspan=4)
+        self.volume_label.grid(row=18, column=0, columnspan=4)
 
         self.volume_en = tk.Entry(pop_up_upload_frame,
                                   font=FONTS['FONT_ENTRY'], width=30)
-        self.volume_en.grid(row=13, column=0)
+        self.volume_en.grid(row=19, column=0)
 
-        upload_button = tk.Button(pop_up_upload_frame,  text='Add to Database', width=10,
+        upload_button = tk.Button(pop_up_upload_frame,  text='Add to Database', width=15,
                                   command=lambda: self.add_experiment_data())
-        upload_button.grid(row=14, column=0)
+        upload_button.grid(row=20, column=0)
         self.my_str = tk.StringVar()
         l5 = tk.Label(pop_up_upload_frame,
                       textvariable=self.my_str, width=10)
-        l5.grid(row=15, column=0)
+        l5.grid(row=21, column=0)
         self.my_str.set("Output")
 
     def add_experiment_data(self):
 
         flag_validation = True
-        self.date = datetime.today().date()
 
+        self.date = datetime.today().date()
         self.time = datetime.now().time()
         self.exp_name = self.experiment_name_en.get()
         self.temperature = self.temperature_en.get()
         self.volume = self.volume_en.get()
-        self.CA = self.CTA_value.get()
-        self.monomer = self.monomer_value.get()
-        self.CxCm = self.Cx_ratio_en.get()
+        self.initiator_concentration = self.Initiator_concentration_en.get()
+        self.monomer_concentration = self.Monomer_concentration_en.get()
+        self.CTA_concentration = self.CTA_concentration_en.get()
 
-        print(f"date: {self.date}, time: {self.time} , name: {self.exp_name}, temperature: {self.temperature}, volume: {self.volume}, user_id: {self.wanted_user_id}, monomer: {self.monomer}, CA: {self.CA}, Cx/Cm {self.CxCm}")
-        print((len(self.monomer)))
-        print(len(self.CA))
-
-        if (len(self.exp_name)) < 2 and (len(self.CA) < 1) and (len(self.monomer) < 1):
+        if (len(self.exp_name)) < 2 and (len(self.CTA_concentration) < 1) and (len(self.monomer_concentration) < 1):
             flag_validation = False
         try:
+
+            self.initiator_id = [
+                k for k, v in self.dict_inis.items() if v == self.Initiator_value.get()][0]
+            print(self.initiator_id)
+
+            self.CTA_id = [
+                k for k, v in self.dict_ctas.items() if v == self.CTA_value.get()][0]
+            print(self.CTA_id)
+
+            self.monomer_id = [
+                k for k, v in self.dict_monomers.items() if v == self.monomer_value.get()][0]
+            print(self.monomer_id)
             temp_val = int(self.temperature)  # checking mark as integer
             volume_val = int(self.volume)
-            CxCm = float(self.CxCm)
+            CxCm = float(self.CTA_concentration)
+            # print(f"date: {self.date}, time: {self.time} , name: {self.exp_name}, temperature: {self.temperature}, volume: {self.volume}, user_id: {self.wanted_user_id}, monomer_id: {self.monomer_id}, Monomer_concentration:{self.monomer_concentration},CTA_id: {self.CTA_id}, cta_conc {self.CTA_concentration}")
 
         except:
             flag_validation = False
@@ -1061,20 +1096,17 @@ class View(tk.Tk):
         if (flag_validation):
 
             # upload experiment
-            query = "INSERT INTO  `experiments_experiment` (`date` ,`time` ,`name` ,`temperature`, `total_volume`,`user_id`,`monomer`, `CTA`, `cx_ratio` ) \
-                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            query = "INSERT INTO  `experiments_experiment` (`date` ,`time` ,`name` ,`temperature`, `total_volume`,`user_id`,`monomer_id`,`cta_id`,`initiator_id`, `monomer_concentration`, `cta_concentration`, `initiator_concentration`) \
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
             my_data = (self.date, self.time, self.exp_name,
-                       self.temperature, self.volume, self.wanted_user_id, self.monomer, self.CA, self.CxCm)
+                       self.temperature, self.volume, self.wanted_user_id, self.monomer_id, self.CTA_id, self.initiator_id, self.monomer_concentration, self.CTA_concentration, self.initiator_concentration)
 
-            my_retrieval_data = (self.exp_name, self.date, self.temperature, self.volume, self.monomer, self.CA,  self.CxCm
-                                 )
-            retrieve_query = "SELECT id FROM  `experiments_experiment` WHERE `name`=%s AND `date`=%s AND `temperature`=%s AND \
-                `total_volume`=%s AND `monomer`=%s AND `CTA`=%s AND `cx_ratio`=%s"
+            my_retrieval_data = (self.date, self.time, self.exp_name,
+                                 self.temperature, self.volume, self.wanted_user_id, int(self.monomer_id), int(self.CTA_id), int(self.initiator_id), self.monomer_concentration, self.CTA_concentration, self.initiator_concentration)
+            retrieve_query = "SELECT id FROM  `experiments_experiment` WHERE `date`=%s AND `time`=%s AND `name`=%s AND \
+                `temperature`=%s AND `total_volume`=%s AND `user_id`=%s AND `monomer_id`=%s AND `cta_id`=%s AND `initiator_id`=%s AND `monomer_concentration`=%s AND `cta_concentration`=%s AND `initiator_concentration`=%s"
             ex = my_conn.execute(query, my_data)
             row_id = my_conn.execute(retrieve_query, my_retrieval_data)
-
-            # retrieve its primary key
-            # use primary keu for data insersion
 
             self.get_user_experiments(self.v)
             self.pop_up_frame_top.destroy()
@@ -1086,8 +1118,8 @@ class View(tk.Tk):
             self.volume_label.config(bg='yellow')  # background color
             self.name_label.config(fg='red')
             self.name_label.config(bg='yellow')
-            self.Cx_ratio_label.config(bg='yellow')
-            self.Cx_ratio_label.config(fg='red')
+            self.CTA_concentration_label.config(bg='yellow')
+            self.Monomer_concentration_label.config(fg='red')
             self.CTA_label.config(bg='yellow')
             self.CTA_label.config(fg='red')
             self.monomer_label.config(bg='yellow')
@@ -1103,6 +1135,36 @@ class View(tk.Tk):
             list_of_experimenter_ids.append(ds[0])
         self.dict_a = dict(
             zip(list_of_experimenter_ids, list_of_experimenters))
+
+    def _get_monomers(self):
+        list_of_monomers = []
+        list_of_monomer_ids = []
+        re_set = my_conn.execute("SELECT * FROM measurements_monomer")
+        for monomer_ds in re_set:
+            list_of_monomer_ids.append(monomer_ds[0])
+            list_of_monomers.append(monomer_ds[1])
+        self.dict_monomers = dict(
+            zip(list_of_monomer_ids, list_of_monomers))
+
+    def _get_ctas(self):
+        list_of_ctas = []
+        list_of_cta_ids = []
+        re_set = my_conn.execute("SELECT * FROM measurements_cta")
+        for cta_ds in re_set:
+            list_of_ctas.append(cta_ds[1])
+            list_of_cta_ids.append(cta_ds[0])
+        self.dict_ctas = dict(
+            zip(list_of_cta_ids, list_of_ctas))
+
+    def _get_initiators(self):
+        list_of_initators = []
+        list_of_initiator_ids = []
+        re_set = my_conn.execute("SELECT * FROM measurements_initiator")
+        for ini_ds in re_set:
+            list_of_initators.append(ini_ds[1])
+            list_of_initiator_ids.append(ini_ds[0])
+        self.dict_inis = dict(
+            zip(list_of_initiator_ids, list_of_initators))
 
     def SearchCommunicationFolder(self, folder):
         '''
@@ -1194,7 +1256,7 @@ class View(tk.Tk):
             'Plotsfolder', 'GPCfolder', 'Infofolder', 'Rawfolder']]
         self.SearchCommunicationFolder(self.ExperimentFolder)
 
-        while analysis and end_counter < (last_timesweep_row +25):
+        while analysis and end_counter < (last_timesweep_row + 25):
             print("sleeps {}".format(nmr_interval))
             end_counter += 1
             sleep(nmr_interval)
