@@ -1,3 +1,4 @@
+from customtkinter import *
 from ctypes import alignment
 from re import S
 from turtle import pen, width
@@ -24,7 +25,7 @@ from datetime import timedelta
 import os
 import save_plots
 import UpdateDF_NMRdata
-
+from PIL import Image, ImageTk
 from pathlib import Path
 from sys import exec_prefix
 from tkinter import *
@@ -66,6 +67,7 @@ DATABASES = {
         'PORT': '3306'
     }
 }
+FRAME_FG ='#d9d4d4'
 logger = setup_logger('App')
 Temporary_textfile, Pathlastexp_textfile, CommunicationMainFolder = defining_communication_folder(
     FOLDERS['COMMUNICATION'])
@@ -98,7 +100,7 @@ class View(tk.Tk):
     PsswinFolder = defining_PsswinFolder(FOLDERS['GPC'])
     NMRFolder = defining_NMRFolder(FOLDERS['NMR'])
     FONTS = {'FONT_NORMAL': ('Ariel', 15),
-             'FONT_HEADER': ('Courier', 30),
+             'FONT_HEADER': ('Ariel', 30),
              'FONT_BOTTON': ('Ariel', 10),
              'FONT_HEADER_BOLD': ('Ariel', 18, 'bold'),
              'FONT_ENTRY': ('Ariel', 17),
@@ -139,36 +141,39 @@ class View(tk.Tk):
         self._get_ctas()
         self._get_initiators()
         self._make_NMRGPC_initialisation_tab()
-        self._upload_results_pop_up()
-        self._create_experiment_upload_screen()
+        # self._upload_results_pop_up()
+        # self._create_experiment_upload_screen()
 
     def main(self):
+        set_appearance_mode("light")  # Modes: system (default), light, dark
+        set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
         self.tab.select(self.welcome_tab)
         self.mainloop()
 
     def _create_tabs(self):
-        self.tab = ttk.Notebook(self)
+        self.tab = ttk.Notebook(self, height=800)
         self.welcome_tab = ttk.Frame(self.tab)
+        self.welcome_tab.place(relx=0.5, rely=0.5, anchor=CENTER)
         self.tab_overview = ttk.Frame(self.tab)
         self.setup = ttk.Frame(self.tab)
         self.tab_experiment = ttk.Frame(self.tab)
         self.tab_NMR = ttk.Frame(self.tab)
         self.tab_NMR_GPC = ttk.Frame(self.tab)
-
         self.tab_NMRGPC_Setup = ttk.Frame(self.tab)
         self.tab_NMRGPC_Timesweeps = ttk.Frame(self.tab)
-        self.tab_NMRGPC_Conversion = ttk.Frame(self.tab)
-        self.tab_NMRGPC_Initialisation = ttk.Frame(self.tab)
+        self.tab_NMRGPC_Conversion = Frame(self.tab, width=900, height=600)
+        self.tab_NMRGPC_Conversion.place(relx=0.5, rely=0.5, anchor=CENTER)
+        self.tab_NMRGPC_Initialisation = Frame(self.tab, width=550, height=550)
         self.upload_screen = ttk.Frame(self.tab)
         self.upload_pop_up = ttk.Frame(self.tab)
 
         self.tab.add(self.tab_NMRGPC_Timesweeps, text='Timesweeps')
-
         self.tab.add(self.tab_NMRGPC_Conversion, text="Conversion")
-
         self.tab.add(self.welcome_tab, text="Welcome")
         self.tab.add(self.setup, text="Setup")
         self.tab.add(self.tab_NMRGPC_Initialisation, text="NMR GPC Init")
+
+        
         # self.tab.add(self.upload_screen, text="Upload Results")
         # self.tab.add(self.upload_pop_up, text="Upload Results Pop up")
         self.tab_NMR_Setup = ttk.Frame(self.tab)
@@ -176,91 +181,110 @@ class View(tk.Tk):
         self.tab_NMR_Conversion = ttk.Frame(self.tab)
         self.tab_NMR_Initialisation = ttk.Frame(self.tab)
 
-        self.tab.grid()
+        self.tab.pack(expand=True)
 
     def _make_main_frame(self):
         self.main_frm = ttk.Frame(self)
-        self.main_frm.grid(padx=self.PADDING, pady=self.PADDING)
+        self.main_frm.pack(padx=self.PADDING, pady=self.PADDING, expand=True)
 
     def _make_timesweep_frame(self):
-        NMRGPC_timesweep_top_frame = tk.Frame(self.tab_NMRGPC_Timesweeps, bg='white', width=1000, height=50, pady=3,
-                                              padx=400)
-        NMRGPC_timesweep_top_frame.grid(row=0, sticky="ew")
-        NMRGPC_timesweep_picture_frame = tk.Frame(self.tab_NMRGPC_Timesweeps, bg='white', width=1000, height=300,
-                                                  padx=175,
-                                                  pady=3)
-        NMRGPC_timesweep_picture_frame.grid(row=1, sticky="nsew")
-        self.NMRGPC_timesweep_parameter_frame = tk.Frame(self.tab_NMRGPC_Timesweeps, bg='gray', width=1000, height=350,
-                                                         pady=3,
-                                                         padx=3)
-        self.NMRGPC_timesweep_parameter_frame.grid(row=3, sticky="ew")
-        self.NMRGPC_timesweep_confirm_frame = tk.Frame(self.tab_NMRGPC_Timesweeps, bg='gray', width=1000, height=50,
-                                                       pady=10,
-                                                       padx=10)
-        self.NMRGPC_timesweep_confirm_frame.grid(row=4, sticky="ew")
+        NMRGPC_timesweep_top_frame = Frame(self.tab_NMRGPC_Timesweeps,  width=1000, height=50)
+        NMRGPC_timesweep_top_frame.pack(pady=3, padx=400)
+
+        NMRGPC_timesweep_picture_frame = Frame(self.tab_NMRGPC_Timesweeps, width=1000, height=300)
+        NMRGPC_timesweep_picture_frame.pack(padx=175, pady=3)
+
+        self.NMRGPC_timesweep_parameter_frame = Frame(self.tab_NMRGPC_Timesweeps, width=600, height=350)
+        self.NMRGPC_timesweep_parameter_frame.pack()
+
+        self.NMRGPC_timesweep_confirm_frame = Frame(self.tab_NMRGPC_Timesweeps, width=1000, height=50)
+        self.NMRGPC_timesweep_confirm_frame.pack()
+
+
+
+        self.NMRGPC_timesweep_log_frame = Frame(self.tab_NMRGPC_Timesweeps, width=1000, height=50)
+        self.NMRGPC_timesweep_log_frame.pack()
+
+        self.NMRGPC_timesweep_submit_frame = Frame(self.tab_NMRGPC_Timesweeps, width=1000, height=50)
+        self.NMRGPC_timesweep_submit_frame.pack()
+
+
 
         # Make-Up Top Frame in Timesweep Tab
-        NMRGPC_timesweep_header = tk.Label(
-            NMRGPC_timesweep_top_frame, text='Timesweeps', bg='white')
-        NMRGPC_timesweep_header.config(font=FONTS['FONT_HEADER'])
+        NMRGPC_timesweep_header = CTkLabel(
+            NMRGPC_timesweep_top_frame, text='Timesweeps')
+        NMRGPC_timesweep_header.configure(font=FONTS['FONT_HEADER'])
         NMRGPC_timesweep_header.grid()
 
         # Make-Up NMRGPC_timesweep_picture_frame in Timsweep Tab
+
+        # image = Image.open("Image File Path")
+        # resize_image = image.resize((500, 500))
+        # img = ImageTk.PhotoImage(resize_image)
+        # LabelPicture = CTkLabel(image=img)
+        # LabelPicture.image = img
+        
+
+
+
+
+
+
+
         picture_timesweep = tk.PhotoImage(
-            file='Pictures/Timesweeps_pictureFrame.png')
-        LabelPicture = tk.Label(
-            master=NMRGPC_timesweep_picture_frame, image=picture_timesweep, bg='white')
-        LabelPicture.grid(column=2)
+            file='Pictures/Timesweeps_pictureFrame.png', height=300)
+        LabelPicture = CTkLabel(
+            master=NMRGPC_timesweep_picture_frame, image=picture_timesweep,bg_color='white')
+        LabelPicture.grid()
 
         # Make-Up Parameter_frame_timesweep in Timesweep Tab
         NMRGPC_all_ts_info = []  # list where all the timesweeps will be saved
 
         # extracts reactorvolume, NMR interval and GPC interval from confirmed setup parameters
 
-        tsparam_header = tk.Label(self.NMRGPC_timesweep_parameter_frame, text="Insert Timesweep Parameters", bg='gray',
+        tsparam_header = CTkLabel(self.NMRGPC_timesweep_parameter_frame, text="Insert Timesweep Parameters",
                                   width=27)
-        tsparam_header.config(font=FONTS['FONT_HEADER_BOLD'])
+        tsparam_header.configure(font=FONTS['FONT_HEADER_BOLD'])
         tsparam_header.grid(row=0, column=1, columnspan=4)
 
-        ts_from_lbl = tk.Label(self.NMRGPC_timesweep_parameter_frame, text='From (minutes)', width=15, bg='gray',
+        ts_from_lbl = CTkLabel(self.NMRGPC_timesweep_parameter_frame, text='From (minutes)', width=15,
                                font=FONTS['FONT_NORMAL'], anchor='center')
-        ts_from_lbl.grid(row=1, column=1, columnspan=2)
+        ts_from_lbl.grid(row=1, column=2)
 
-        self.ts_from_en = tk.Entry(
-            self.NMRGPC_timesweep_parameter_frame, width=5, font=FONTS['FONT_ENTRY'])
-        self.ts_from_en.grid(row=2, column=1)
+        self.ts_from_en = CTkEntry(
+            self.NMRGPC_timesweep_parameter_frame, font=FONTS['FONT_ENTRY'])
+        self.ts_from_en.grid(row=2, column=2)
 
-        ts_to_lbl = tk.Label(self.NMRGPC_timesweep_parameter_frame, text='To (minutes)', bg='gray',
+        ts_to_lbl = CTkLabel(self.NMRGPC_timesweep_parameter_frame, text='To (minutes)',
                              font=FONTS['FONT_NORMAL'],
                              anchor='center')
-        ts_to_lbl.grid(row=1, column=4, columnspan=2)
+        ts_to_lbl.grid(row=1, column=3, padx=(10, 0))
 
-        ts_to_en = tk.Entry(self.NMRGPC_timesweep_parameter_frame,
-                            width=5, font=FONTS['FONT_ENTRY'])
-        ts_to_en.grid(row=2, column=4)
-
-        insert_ts_btm = tk.Button(self.NMRGPC_timesweep_parameter_frame, text='Add',
+        ts_to_en = CTkEntry(self.NMRGPC_timesweep_parameter_frame,
+                            font=FONTS['FONT_ENTRY'])
+        ts_to_en.grid(row=2, column=3, padx=(10, 0))
+        insert_ts_btm = CTkButton(self.NMRGPC_timesweep_parameter_frame, text='Add', width=60,
                                   command=lambda timesweep_to=ts_to_en,
                                   timesweep_from=self.ts_from_en: self.controller.add_timesweep(
                                       timesweep_to, timesweep_from),
                                   font=FONTS['FONT_BOTTON'])
-        insert_ts_btm.grid(row=3, column=2)
+        insert_ts_btm.grid(row=3, column=2, pady=20, padx=(60, 0))
 
-        delete_ts_btm = tk.Button(self.NMRGPC_timesweep_parameter_frame, text='Delete',
+        delete_ts_btm = CTkButton(self.NMRGPC_timesweep_parameter_frame, text='Delete', width=60,
                                   command=self.controller.delete_timesweep,
                                   font=FONTS['FONT_BOTTON'])
-        delete_ts_btm.grid(row=3, column=3)
+        delete_ts_btm.grid(row=3, column=3, pady=20, padx=(0, 60))
 
-        confirmed_ts = tk.Label(
-            self.NMRGPC_timesweep_parameter_frame, text='List of Timesweeps', bg='gray')
-        confirmed_ts.config(font=FONTS['FONT_HEADER_BOLD'], anchor='w')
-        confirmed_ts.grid(row=4, column=0)
+        confirmed_ts = CTkLabel(
+            self.NMRGPC_timesweep_parameter_frame, text='List of Timesweeps')
+        confirmed_ts.configure(font=FONTS['FONT_HEADER_BOLD'], anchor='w')
+        confirmed_ts.grid(row=4, column=2, columnspan=3)
 
-        summary_1 = tk.Label(self.NMRGPC_timesweep_confirm_frame,
-                             text=' ', width=90, bg='gray', anchor='w', padx=10)
+        summary_1 = CTkLabel(self.NMRGPC_timesweep_confirm_frame,
+                             text='', width=90, anchor='w', padx=10)
         summary_1.grid(row=1, column=0)
 
-        confirm_ts_btm = tk.Button(self.NMRGPC_timesweep_confirm_frame, text='Confirm', height=3, width=15,
+        confirm_ts_btm = CTkButton(self.NMRGPC_timesweep_submit_frame, text='Confirm', height=3, width=15,
                                    command=self.controller.confirm_timesweep, font=FONTS['FONT_BOTTON'])
         confirm_ts_btm.grid()
 
@@ -268,10 +292,10 @@ class View(tk.Tk):
 
         # Creates 'List of Timesweeps'
         for i, ts_info in enumerate(self.NMRGPC_all_ts_info):
-            ts_info[0] = tk.Label(self.NMRGPC_timesweep_parameter_frame, text=ts_info[1], bg='gray', width=90,
+            ts_info[0] = CTkLabel(self.NMRGPC_timesweep_log_frame, text=ts_info[1], bg_color='gray', width=90,
                                   font=FONTS['FONT_SMALL'], anchor='w')
 
-            ts_info[0].grid(row=5 + i, columnspan=5)
+            ts_info[0].grid(row=i, columnspan=5)
             # to_minute of timesweep i is from_minute of timesweep i+1
             entryText = tk.DoubleVar()
             entryText.set(self.NMRGPC_all_ts_info[-1][-1])
@@ -287,11 +311,11 @@ class View(tk.Tk):
         self.solution_popup = tk.Toplevel()
         self.solution_popup.title('Reaction Solution')
 
-        popuptitle = tk.Label(
+        popuptitle = CTkLabel(
             self.solution_popup, text='Reaction Solution', font=FONTS['FONT_HEADER'], padx=15)
         popuptitle.grid(row=0, column=0, columnspan=3)
         # monomer
-        mLMonomer = tk.Entry(self.solution_popup)  # Entry in Column 1
+        mLMonomer = CTkEntry(self.solution_popup)  # Entry in Column 1
         mLMonomer.grid(row=1, column=1)
 
         optionsMonomer = tk.StringVar()
@@ -300,11 +324,11 @@ class View(tk.Tk):
                                      *self.monomerlist['abbreviation'])  # Menu in Column 0
         MenuMonomer.grid(row=1, column=0)
 
-        monomerlabel = tk.Label(self.solution_popup,
+        monomerlabel = CTkLabel(self.solution_popup,
                                 text='mL')  # Unit in column 2
         monomerlabel.grid(row=1, column=2)
         # RAFT
-        gramRAFT = tk.Entry(self.solution_popup)
+        gramRAFT = CTkEntry(self.solution_popup)
         gramRAFT.grid(row=2, column=1)
 
         optionsRAFT = tk.StringVar()
@@ -313,10 +337,10 @@ class View(tk.Tk):
             self.solution_popup, optionsRAFT, *self.RAFTlist['abbreviation'])
         MenuRAFT.grid(row=2, column=0)
 
-        RAFTlabel = tk.Label(self.solution_popup, text='g')
+        RAFTlabel = CTkLabel(self.solution_popup, text='g')
         RAFTlabel.grid(row=2, column=2)
         # initator
-        graminitiator = tk.Entry(self.solution_popup)
+        graminitiator = CTkEntry(self.solution_popup)
         graminitiator.grid(row=3, column=1)
 
         optionsinitiator = tk.StringVar()
@@ -325,10 +349,10 @@ class View(tk.Tk):
             self.solution_popup, optionsinitiator, *self.initiatorlist['abbreviation'])
         MenuInitiator.grid(row=3, column=0)
 
-        initiatorlabel = tk.Label(self.solution_popup, text='g')
+        initiatorlabel = CTkLabel(self.solution_popup, text='g')
         initiatorlabel.grid(row=3, column=2)
         # solvent
-        mLsolvent = tk.Entry(self.solution_popup)
+        mLsolvent = CTkEntry(self.solution_popup)
         mLsolvent.grid(row=4, column=1)
 
         optionsSolvent = tk.StringVar()
@@ -337,10 +361,10 @@ class View(tk.Tk):
             self.solution_popup, optionsSolvent, *self.solventlist['abbreviation'])
         MenuSolvent.grid(row=4, column=0)
 
-        solventlabel = tk.Label(self.solution_popup, text='mL')
+        solventlabel = CTkLabel(self.solution_popup, text='mL')
         solventlabel.grid(row=4, column=2)
 
-        Confirmsolution2 = tk.Button(self.solution_popup, text='Confirm',
+        Confirmsolution2 = CTkButton(self.solution_popup, text='Confirm',
                                      command=lambda chemical_list=[gramRAFT, graminitiator, mLMonomer, mLsolvent],
                                      monomer=optionsMonomer, solvent=optionsSolvent,
                                      RAFT=optionsRAFT,
@@ -352,103 +376,107 @@ class View(tk.Tk):
         Confirmsolution2.grid(row=5, column=1)
 
     def make_solution_summary_view(self, summary_string):
-        solution_summary = tk.Label(self.NMRGPC_setup_parameter_frame, text='Reaction Solution', bg='gray',
+        solution_summary = CTkLabel(self.NMRGPC_setup_parameter_frame, text='Reaction Solution', bg_color='gray',
                                     font=FONTS['FONT_NORMAL'], pady=20)
         # row i + 1; i last row from parameters
         solution_summary.grid(row=8, column=0, columnspan=2, rowspan=2)
 
-        solution_summary.config(text=summary_string)
+        solution_summary.configure(text=summary_string)
 
     def go_to_tab(self, next_tab):
         self.tab.select(next_tab)
 
+    
     def _make_welcome_screen(self):
-        s = ttk.Style()
-        s.configure('PViewStyle.Treeview', font=self.FONTS['FONT_HEADER_BOLD'])
-        Welcome_top_frame = tk.Frame(
-            self.welcome_tab, bg='white', pady=30, padx=400)
-        Welcome_top_frame.grid(sticky='ne')
-        header_Welcome = tk.Label(
-            Welcome_top_frame, text='Welcome', bg='white', font=self.FONTS['FONT_HEADER'])
-        header_Welcome.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
-        Welcome_Option_frame = tk.Frame(self.welcome_tab)
-        Welcome_Option_frame.grid()
-        Welcome_option_frame_header = tk.Label(Welcome_Option_frame, text='Choose a mode of operation',
-                                               font=self.FONTS['FONT_HEADER_BOLD'])
-        Welcome_option_frame_header.grid(
-            row=0, column=0, columnspan=2, padx=10, pady=10)
+        # s = ttk.Style()
+        # s.configure('PViewStyle.Treeview', font=self.FONTS['FONT_HEADER_BOLD'])
+        Welcome_top_frame = CTkFrame(
+            self.welcome_tab)
+        Welcome_top_frame.pack()
 
-        optionNMR_btn = tk.Button(Welcome_Option_frame, text="NMR", width=20, height=3,
+        header_Welcome = Label(
+            Welcome_top_frame, text='Welcome', font=self.FONTS['FONT_HEADER'])
+        header_Welcome.pack()
+
+        Welcome_Option_frame = CTkFrame(self.welcome_tab)
+        Welcome_Option_frame.place(relx=0.5, rely=0.50, anchor=CENTER, width='500')
+        
+        Welcome_option_frame_header = CTkLabel(Welcome_Option_frame, text='Choose a mode of operation',
+                                               font=self.FONTS['FONT_HEADER_BOLD'])
+        
+        
+        
+        Welcome_option_frame_header.pack()
+
+        optionNMR_btn = CTkButton(Welcome_Option_frame, text="NMR",
                                   font=FONTS['FONT_HEADER_BOLD'],
                                   command=lambda button="NMR Button": self.controller.on_button_click(button))
-        optionNMR_btn.grid(padx=5, pady=5)
-        optionNMRGPC_btn = tk.Button(Welcome_Option_frame, text="NMR-GPC", width=20, height=3,
+        self.button_spacing(optionNMR_btn)
+        optionNMRGPC_btn = CTkButton(Welcome_Option_frame, text="NMR-GPC", 
                                      font=FONTS['FONT_HEADER_BOLD'],
                                      command=lambda next_tab=self.setup: self.go_to_tab(next_tab))
-        optionNMRGPC_btn.grid(padx=5, pady=5)
+        self.button_spacing(optionNMRGPC_btn)
 
-        comfolder_label = tk.Label(
-            Welcome_Option_frame, text="Communication Folder", font=FONTS['FONT_ENTRY'])
-        comfolder_label.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+        comfolder_label = CTkLabel(
+            Welcome_Option_frame, text="Communication Folder",font=FONTS['FONT_HEADER_BOLD'])
+        comfolder_label.pack()
         comfolder_path = tk.StringVar(value=self.CommunicationMainFolder)
 
-        comfolder = tk.Label(Welcome_Option_frame, textvariable=comfolder_path)
-        comfolder.grid(row=4, column=0, columnspan=2)
-        comfolder_btn = tk.Button(Welcome_Option_frame, text="Browse", command=lambda path=comfolder_path,
+        comfolder = CTkLabel(Welcome_Option_frame, textvariable=comfolder_path)
+        comfolder.pack()
+        comfolder_btn = CTkButton(Welcome_Option_frame, text="Browse", command=lambda path=comfolder_path,
                                   folder_type="COMMUNICATION": self.controller.change_file_path(
                                       path, folder_type))
-        comfolder_btn.grid(row=5, column=0)
+        self.button_spacing(comfolder_btn)
 
-        NMRmainfolder_label = tk.Label(
-            Welcome_Option_frame, text="Spinsolve Folder", font=FONTS['FONT_ENTRY'])
-        NMRmainfolder_label.grid(
-            row=6, column=0, columnspan=2, padx=10, pady=10)
+        NMRmainfolder_label = CTkLabel(
+            Welcome_Option_frame, text="Spinsolve Folder", font=FONTS['FONT_HEADER_BOLD'])
+        NMRmainfolder_label.pack()
         NMRmainfolder_path = tk.StringVar(value=self.NMRFolder)
-        NMRmainfolder = tk.Label(Welcome_Option_frame,
+        NMRmainfolder = CTkLabel(Welcome_Option_frame,
                                  textvariable=NMRmainfolder_path)
-        NMRmainfolder.grid(row=7, column=0, columnspan=2)
+        NMRmainfolder.pack()
 
-        NMRmainfolder_btn = ttk.Button(Welcome_Option_frame, text="Browse",
+        NMRmainfolder_btn = CTkButton(Welcome_Option_frame, text="Browse",
                                        command=lambda path=NMRmainfolder_path,
                                        folder_type="NMR": self.controller.change_file_path(path,
                                                                                            folder_type))
-        NMRmainfolder_btn.grid(row=8, column=0)
+        self.button_spacing(NMRmainfolder_btn)
 
-        Psswinmainfolder_label = tk.Label(
-            Welcome_Option_frame, text="Psswin Folder", font=FONTS['FONT_ENTRY'])
-        Psswinmainfolder_label.grid(
-            row=9, column=0, columnspan=2, padx=10, pady=10)
+        Psswinmainfolder_label = CTkLabel(
+            Welcome_Option_frame, text="Psswin Folder", font=FONTS['FONT_HEADER_BOLD'])
+        Psswinmainfolder_label.pack()
         Psswinmainfolder_path = tk.StringVar(value=self.PsswinFolder)
-        Psswinmainfolder = tk.Label(
+        Psswinmainfolder = CTkLabel(
             Welcome_Option_frame, textvariable=Psswinmainfolder_path)
-        Psswinmainfolder.grid(row=10, column=0, columnspan=2)
-        Psswinmainfolder_btn = ttk.Button(Welcome_Option_frame, text="Browse",
+        Psswinmainfolder.pack()
+        Psswinmainfolder_btn = CTkButton(Welcome_Option_frame, text="Browse",
                                           command=lambda path=Psswinmainfolder_path,
                                           folder_type="GPC": self.controller.change_file_path(path,
                                                                                               folder_type))
-        Psswinmainfolder_btn.grid(row=11, column=0)
+        self.button_spacing(Psswinmainfolder_btn)
 
-        labviewscript_info = ttk.Label(
-            Welcome_Option_frame, text="Labview script", font=FONTS['FONT_SMALL_BOLD'])
-        labviewscript_info.grid(padx=12)
-        script = ttk.Label(Welcome_Option_frame,
+        labviewscript_info = CTkLabel(
+            Welcome_Option_frame, text="Labview script", font=FONTS['FONT_ENTRY'])
+        labviewscript_info.pack()
+        script = CTkLabel(Welcome_Option_frame,
                            text=self.Labviewscript, font=FONTS['FONT_SMALL'])
-        script.grid()
+        script.pack()
 
     def change_parameter_view_values(self):
         for i, parameter in enumerate(SETUP_DEFAULT_VALUES_NMR):
-            parameter[1] = tk.Label(self.NMRGPC_setup_parameter_frame, text=parameter[4], bg='gray',
+            parameter[1] = CTkLabel(self.NMRGPC_setup_parameter_frame, text=parameter[4], bg_color='gray',
                                     width=20)  # changes value in GUI
-            parameter[1].config(font=View.FONTS['FONT_NORMAL'], anchor='e')
+            parameter[1].configure(font=View.FONTS['FONT_NORMAL'], anchor='e')
             parameter[1].grid(row=i, column=4)
 
     def show_warning(self, error_message="Please enter a valid floating point number for all fields"):
         warning = tk.Toplevel(self)
         warning.title("Incorrect entry")
-        header_wrong_input = tk.Label(warning, text=error_message,
-                                      bg='white', font=self.FONTS['FONT_HEADER'])
+        header_wrong_input = CTkLabel(warning, text=error_message,
+                                      bg_color='white', font=self.FONTS['FONT_HEADER'])
         header_wrong_input.grid(padx=5, pady=5)
-        exit_button = tk.Button(warning, text="Exit", command=warning.destroy)
+        exit_button = CTkButton(warning, text="Exit", command=warning.destroy)
         exit_button.grid()
 
     def clear_fields(self, *args):
@@ -463,21 +491,21 @@ class View(tk.Tk):
         ts_number = int(scan_numbers.shape[0])
         totalvolume = stabili + (ts_number * allDvs)
 
-        summary_1 = tk.Label(self.NMRGPC_timesweep_confirm_frame,
-                             text='Total time:             {}min'.format(round(total_time, 1)), width=90, bg='gray',
+        summary_1 = CTkLabel(self.NMRGPC_timesweep_confirm_frame,
+                             text='Total time:             {}min'.format(round(total_time, 1)), width=90, bg_color='gray',
                              anchor='w', padx=10)
         summary_1.grid(row=1, column=0)
-        summary_2 = tk.Label(self.NMRGPC_timesweep_confirm_frame,
-                             text='Total NMR scans:         {}'.format(round(total_scan, 0)), width=90, bg='gray',
+        summary_2 = CTkLabel(self.NMRGPC_timesweep_confirm_frame,
+                             text='Total NMR scans:         {}'.format(round(total_scan, 0)), width=90, bg_color='gray',
                              anchor='w')
         summary_2.grid(row=2, column=0)
-        summary_3 = tk.Label(self.NMRGPC_timesweep_confirm_frame,
+        summary_3 = CTkLabel(self.NMRGPC_timesweep_confirm_frame,
                              text='Total GPC samples:       {}'.format(
                                  round(total_gpc, 0)),
-                             width=90, bg='gray', anchor='w')
+                             width=90, bg_color='gray', anchor='w')
         summary_3.grid(row=3, column=0)
-        summary_4 = tk.Label(self.NMRGPC_timesweep_confirm_frame,
-                             text='Volume Needed:       {} mL'.format(round(totalvolume, 1)), width=90, bg='gray',
+        summary_4 = CTkLabel(self.NMRGPC_timesweep_confirm_frame,
+                             text='Volume Needed:       {} mL'.format(round(totalvolume, 1)), width=90, bg_color='gray',
                              anchor='w')
         summary_4.grid(row=4, column=0)
 
@@ -486,83 +514,106 @@ class View(tk.Tk):
 
     def _set_conversion_formula(self, monomer_key):
         Constants.Conversion_values = Constants.Monomer_Conversion[monomer_key]
+    def indent_conversion_elements(self, label):
+        label.config(padx=(0, 20), pady=(0, 5))
 
     def _make_conversion_screen(self):
 
-        self.NMRGPC_top_frame_conv = tk.Frame(
-            self.tab_NMRGPC_Conversion, bg='white', width=1000, height=50, pady=3, padx=400)
-        self.NMRGPC_top_frame_conv.grid(row=0, sticky="ew")
+        name_window_conv = CTkLabel(
+            self.tab_NMRGPC_Conversion, text='Conversion', font=FONTS['FONT_HEADER'])
+        name_window_conv.pack()
 
-        name_window_conv = tk.Label(
-            self.NMRGPC_top_frame_conv, text='Conversion', bg='white', font=FONTS['FONT_HEADER'])
-        name_window_conv.grid()
+        self.NMRGPC_top_frame_conv = CTkFrame( 
+            self.tab_NMRGPC_Conversion, 
+            fg_color = '#d9d4d4'
+        )
+        self.NMRGPC_top_frame_conv.place(relx=0.5, rely=0.4, anchor=CENTER, width='500', height='500')
+
+
+
+
         self.Conversion_option_NMRGPC = tk.StringVar()
 
-        self.IS_radio_NMRGPC = tk.Radiobutton(self.tab_NMRGPC_Conversion, text="Internal Standard",
+        self.IS_radio_NMRGPC = CTkRadioButton(self.NMRGPC_top_frame_conv, text="Internal Standard",
                                               font=FONTS['FONT_ENTRY'],
                                               variable=self.Conversion_option_NMRGPC, value="Internal Standard",
                                               command=self.select_internal_standard)
-        self.IS_radio_NMRGPC.grid()
-        self.mol_monomerLabel_NMRGPC = tk.Label(
-            self.tab_NMRGPC_Conversion, text="Monomer initial (mol)")
-        self.mol_monomerLabel_NMRGPC.grid()
-        self.mol_monomerEntry_NMRGPC = tk.Entry(self.tab_NMRGPC_Conversion)
-        self.mol_monomerEntry_NMRGPC.grid()
-        self.mol_ISlabel_NMRGPC = tk.Label(
-            self.tab_NMRGPC_Conversion, text="4-hydroxy benzaldehyde initial (mol)")
-        self.mol_ISlabel_NMRGPC.grid()
-        self.mol_internal_standardEntry_NMRGPC = tk.Entry(
-            self.tab_NMRGPC_Conversion)
-        self.mol_internal_standardEntry_NMRGPC.grid()
+        self.IS_radio_NMRGPC.pack(pady=(20, 0))
 
-        monomer_radio_NMRGPC = tk.Radiobutton(self.tab_NMRGPC_Conversion, text="Monomer", font=FONTS['FONT_ENTRY'],
+
+        self.conversion_inputs = CTkFrame(self.NMRGPC_top_frame_conv, fg_color = '#d9d4d4')
+        self.conversion_inputs.pack(pady=(15, 15))
+
+        # self.conversion_inputs.configure(padx=15, pady=15)
+        self.mol_monomerLabel_NMRGPC = CTkLabel(
+            self.conversion_inputs, text="Monomer initial (mol)")
+        self.mol_monomerLabel_NMRGPC.pack()
+
+        self.mol_monomerEntry_NMRGPC = CTkEntry(self.conversion_inputs)
+        self.mol_monomerEntry_NMRGPC.pack()
+
+        self.mol_ISlabel_NMRGPC = CTkLabel(
+            self.conversion_inputs, text="4-hydroxy benzaldehyde initial (mol)")
+        self.mol_ISlabel_NMRGPC.pack()
+
+        self.mol_internal_standardEntry_NMRGPC = CTkEntry(
+            self.conversion_inputs)
+        self.mol_internal_standardEntry_NMRGPC.pack()
+
+
+
+        monomer_radio_NMRGPC = CTkRadioButton(self.NMRGPC_top_frame_conv, text="Monomer", font=FONTS['FONT_ENTRY'],
                                               variable=self.Conversion_option_NMRGPC, value="Monomer",
                                               command=self.select_monomer)
-        monomer_radio_NMRGPC.grid()
-        options = tk.StringVar(self.tab_NMRGPC_Conversion)
+        monomer_radio_NMRGPC.pack()
+        self.monomer_options_frame = CTkFrame(self.NMRGPC_top_frame_conv, fg_color='#d9d4d4')
+        self.monomer_options_frame.pack(pady=(15,15))
+
+        options = tk.StringVar(self.monomer_options_frame)
         options.set("Choose")  # default value
-        monomer_options_label = tk.Label(self.tab_NMRGPC_Conversion,  text='Monomer Options',
-                                         font=('Helvetica', 16), width=30, anchor="c")
-        monomer_options_label.grid()
+        monomer_options_label = CTkLabel(self.monomer_options_frame,  text='Monomer Options',
+                                         font=('Helvetica', 16), width=30, bg_color='#d9d4d4')#, anchor="c")        #############
+        monomer_options_label.pack()
 
         monomer_options_menu = tk.OptionMenu(
-            self.tab_NMRGPC_Conversion, options, *Constants.Monomer_Conversion.keys(), command=lambda key=options: self._set_conversion_formula(key))
-        monomer_options_menu.grid()
+            self.monomer_options_frame, options, *Constants.Monomer_Conversion.keys(), command=lambda key=options: self._set_conversion_formula(key))
+        monomer_options_menu.config(bg="GREEN", fg="WHITE")
+        monomer_options_menu.pack()
         print(options.get())
 
-        solvent_radio_NMRGPC = tk.Radiobutton(self.tab_NMRGPC_Conversion, text="Solvent (Butyl Acetate)",
+        solvent_radio_NMRGPC = CTkRadioButton(self.NMRGPC_top_frame_conv, text="Solvent (Butyl Acetate)",
                                               font=FONTS[
                                                   'FONT_ENTRY'], variable=self.Conversion_option_NMRGPC,
                                               value="Solvent (Butyl Acetate)",
                                               command=self.select_solvent)
-        solvent_radio_NMRGPC.grid()
+        solvent_radio_NMRGPC.pack(pady=(30, 15))
 
-        Conversion_info_frame_NMRGPC = tk.Frame(self.tab_NMRGPC_Conversion)
-        Conversion_info_frame_NMRGPC.grid()
+        Conversion_info_frame_NMRGPC = CTkFrame(self.NMRGPC_top_frame_conv, fg_color = '#d9d4d4')
+        Conversion_info_frame_NMRGPC.pack()
 
-        self.Conversion_Label_NMRGPC = tk.Label(
+        self.Conversion_Label_NMRGPC = CTkLabel(
             Conversion_info_frame_NMRGPC, text='Choose option')
-        self.Conversion_Label_NMRGPC.grid(row=0, column=1, columnspan=3)
+        self.Conversion_Label_NMRGPC.pack()
 
-        confirm_conv_btm_NMRGPC = tk.Button(Conversion_info_frame_NMRGPC, text='Confirm', height=3, width=15,
+        confirm_conv_btn_NMRGPC = CTkButton(Conversion_info_frame_NMRGPC, text='Confirm',
                                             command=lambda conversion_option_chosen=self.Conversion_option_NMRGPC,
                                             field_entries=[self.mol_monomerEntry_NMRGPC,
                                                            self.mol_internal_standardEntry_NMRGPC]: self.controller.confirm_conversion(
                                                 conversion_option_chosen.get(), field_entries),
                                             font=FONTS['FONT_BOTTON'])
-        confirm_conv_btm_NMRGPC.grid(row=1, column=2, rowspan=3)
+        confirm_conv_btn_NMRGPC.pack(pady=(9, 40))
 
     def select_internal_standard(self):
         '''If internal standard option is selected'''
         self.mol_internal_standardEntry_NMRGPC.configure(state='normal')
         self.mol_monomerEntry_NMRGPC.configure(state='normal')
-        self.Conversion_Label_NMRGPC.config(text='Internal Standard')
+        self.Conversion_Label_NMRGPC.configure(text='Internal Standard')
         self.mol_monomerLabel_NMRGPC.configure(foreground='black')
         self.mol_ISlabel_NMRGPC.configure(foreground='black')
 
     def select_monomer(self):
         '''If monomer option is selected, IS entry fields are disabled'''
-        self.Conversion_Label_NMRGPC.config(
+        self.Conversion_Label_NMRGPC.configure(
             text='Conversion will be calculated with monomer peaks (only MA for now)')
         self.mol_internal_standardEntry_NMRGPC.configure(state='disabled')
         self.mol_monomerEntry_NMRGPC.configure(state='disabled')
@@ -571,7 +622,7 @@ class View(tk.Tk):
 
     def select_solvent(self):
         '''If solvent option is selected, IS entry fields are disabled'''
-        self.Conversion_Label_NMRGPC.config(
+        self.Conversion_Label_NMRGPC.configure(
             text='Conversion will be calculated based on the solvent+monomer peak (butyl acetate)')
         self.mol_internal_standardEntry_NMRGPC.configure(state='disabled')
         self.mol_monomerEntry_NMRGPC.configure(state='disabled')
@@ -583,194 +634,202 @@ class View(tk.Tk):
         self.tab.select(self.setup)
         ### NMR  - SETUP TAB ###
         # Create Main frame of Setup Tab
-        self.NMRGPC_setup_top_frame = tk.Frame(
-            self.setup, bg='white', width=1000, height=50, pady=3, padx=400)
-        self.NMRGPC_setup_top_frame.grid(row=0, sticky='ew')
 
-        self.NMRGPC_setup_picture_frame = tk.Frame(
-            self.setup, bg='white', width=1000, height=30, padx=175, pady=3)
-        self.NMRGPC_setup_picture_frame.grid(row=1, sticky='ew')
+        self.setup_main_frame = CTkFrame(self.setup, fg_color = FRAME_FG)
+        self.setup_main_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-        self.NMRGPC_setup_parameter_frame = tk.Frame(
-            self.setup, bg='gray', width=1000, height=350, pady=30)
-        self.NMRGPC_setup_parameter_frame.grid(row=2, sticky='ew')
+        self.NMRGPC_setup_top_frame = CTkFrame(
+            self.setup_main_frame, width=1000, height=50, fg_color = FRAME_FG)
+        self.NMRGPC_setup_top_frame.pack(pady=3, padx=400)
 
-        self.NMRGPC_setup_confirm_frame = tk.Frame(
-            self.setup, bg='gray', width=1000, height=50, pady=10, padx=400)
-        self.NMRGPC_setup_confirm_frame.grid(row=3, sticky="ew")
+        self.NMRGPC_setup_picture_frame =CTkFrame(
+            self.setup_main_frame, width=1000, height=30, fg_color = FRAME_FG)
+        self.NMRGPC_setup_picture_frame.pack(padx=175, pady=3)
+
+        self.NMRGPC_setup_parameter_frame = CTkFrame(
+            self.setup_main_frame, width=1000, height=350, fg_color = FRAME_FG)
+        self.NMRGPC_setup_parameter_frame.pack()
+
+        self.NMRGPC_setup_confirm_frame = CTkFrame(
+            self.setup_main_frame, width=1000, height=50, fg_color = FRAME_FG)
+        self.NMRGPC_setup_confirm_frame.pack(pady=10, padx=400)
 
         # Make-Up Top Frame
-        name_window = tk.Label(
-            self.NMRGPC_setup_top_frame, text='Setup', bg='white')
-        name_window.config(font=FONTS['FONT_HEADER'])
+        name_window = CTkLabel(
+            self.NMRGPC_setup_top_frame, text='Setup')
+        name_window.configure(font=FONTS['FONT_HEADER'])
         name_window.grid()
 
         # Make-Up Picture_frame
         self.NMRGPC_picure_setup = tk.PhotoImage(
             file='Pictures/NMRGPCsetup.png')
-        NMRGPC_LabelPicture = tk.Label(
-            self.NMRGPC_setup_picture_frame, image=self.NMRGPC_picure_setup, bg='black')
-        NMRGPC_LabelPicture.grid()
+        NMRGPC_LabelPicture = CTkLabel(
+            self.NMRGPC_setup_picture_frame, image=self.NMRGPC_picure_setup)
+        NMRGPC_LabelPicture.grid(pady=(0, 66))
+
         for i, entry_values in enumerate(SETUP_DEFAULT_VALUES_NMR):
-            parameter = tk.Label(self.NMRGPC_setup_parameter_frame, text=entry_values[2],
+            parameter = CTkLabel(self.NMRGPC_setup_parameter_frame, text=entry_values[2],
                                  width=30)  # parameter name in column 0
-            parameter.config(font=FONTS['FONT_NORMAL'])
-            parameter.grid(row=i, column=0)
+            parameter.configure(font=FONTS['FONT_NORMAL'])
+            parameter.grid(row=i, column=0, pady=2, padx=3)
 
-            entry_values[0] = tk.Entry(
+            entry_values[0] = CTkEntry(
                 self.NMRGPC_setup_parameter_frame)  # entry in column 1
-            entry_values[0].grid(row=i, column=1)
+            entry_values[0].grid(row=i, column=1, pady=2, padx=3)
 
-            unit = tk.Label(self.NMRGPC_setup_parameter_frame, text=entry_values[3], bg='red',
-                            width=10)  # unit in column 2
+            unit = CTkLabel(self.NMRGPC_setup_parameter_frame, text=entry_values[3]
+                            ,width=10)  # unit in column 2
             # anchor the left of the label (west)
-            unit.config(font=FONTS['FONT_NORMAL'], anchor='w')
-            unit.grid(row=i, column=2)
+            unit.configure(font=FONTS['FONT_NORMAL'], anchor='w')
+            unit.grid(row=i, column=2, pady=2, padx=3)
 
-            entry_values[5] = tk.Button(self.NMRGPC_setup_parameter_frame, text='Change',
+            entry_values[5] = CTkButton(self.NMRGPC_setup_parameter_frame, text='Change',
                                         command=self.controller.on_change_button_click)  # botton (with text change) in column 3
-            entry_values[5].grid(row=i, column=3)
+            entry_values[5].grid(row=i, column=3, pady=2, padx=3)
 
-            entry_values[1] = tk.Label(self.NMRGPC_setup_parameter_frame, text=entry_values[4],
-                                       bg='red')  # default value in column 4
+            entry_values[1] = CTkLabel(self.NMRGPC_setup_parameter_frame, text=entry_values[4])  # default value in column 4
             # anchor to the right of the label (east)
-            entry_values[1].config(font=FONTS['FONT_NORMAL'], anchor='e')
-            entry_values[1].grid(row=i, column=4)
+            entry_values[1].configure(font=FONTS['FONT_NORMAL'], anchor='e')
+            entry_values[1].grid(row=i, column=4, pady=2, padx=3)
 
-            unit2 = tk.Label(self.NMRGPC_setup_parameter_frame, text=entry_values[3],
-                             bg='red')  # again unit in column 5
-            unit2.config(font=FONTS['FONT_NORMAL'])
-            unit2.grid(row=i, column=5)
+            unit2 = CTkLabel(self.NMRGPC_setup_parameter_frame, text=entry_values[3])  # again unit in column 5
+            unit2.configure(font=FONTS['FONT_NORMAL'])
+            unit2.grid(row=i, column=5, pady=2, padx=3)
 
-        solutionSummary1 = tk.Label(self.NMRGPC_setup_parameter_frame, text='Reaction Solution', bg='gray',
+        solutionSummary1 = CTkLabel(self.NMRGPC_setup_parameter_frame, text='Reaction Solution',
                                     font=FONTS['FONT_NORMAL'], pady=20)
         # row i + 1; i last row from parameters
         solutionSummary1.grid(row=i + 1, column=0, columnspan=2, rowspan=2)
-        solution_button1 = tk.Button(self.NMRGPC_setup_parameter_frame, text='Reaction solution',
+        solution_button1 = CTkButton(self.NMRGPC_setup_parameter_frame, text='Reaction solution',
                                      command=self.make_pop_up_tab)
         solution_button1.grid(row=i + 1, column=3)
 
         # Make-up confirm frame
-        confirm_reactorParameters = tk.Button(self.NMRGPC_setup_confirm_frame, text='Confirm', height=3, width=15,
+        confirm_reactorParameters = CTkButton(self.NMRGPC_setup_confirm_frame, text='Confirm',
                                               command=self.Confirm_reactor_parameters, font=FONTS['FONT_BOTTON'])
 
         confirm_reactorParameters.grid()
 
     def _make_NMRGPC_initialisation_tab(self):
         # Create Main frame of init Tab
-        NMRGPC_top_frame_init = tk.Frame(
-            self.tab_NMRGPC_Initialisation, bg='white', width=1000, height=50, pady=3, padx=400)
-        NMRGPC_top_frame_init.grid(row=0, sticky="ew")
-        NMRGPC_picture_frame_init = tk.Frame(self.tab_NMRGPC_Initialisation, bg='white', width=1000, height=300,
-                                             padx=175,
-                                             pady=3)
-        NMRGPC_picture_frame_init.grid(row=1, sticky="nsew")
-        NMRGPC_parameter_frame_init = tk.Frame(self.tab_NMRGPC_Initialisation, bg='gray', width=1000, height=350,
+        NMRGPC_main_frame = CTkFrame(
+            self.tab_NMRGPC_Initialisation,  width=1000, height=50, fg_color=FRAME_FG)
+        NMRGPC_main_frame.pack()
+
+        NMRGPC_top_frame_init = CTkFrame(
+            NMRGPC_main_frame,  width=1000, height=50, fg_color=FRAME_FG)
+
+        NMRGPC_top_frame_init.grid(row=0, sticky="ew", pady=3, padx=400)
+        # NMRGPC_picture_frame_init = CTkFrame(NMRGPC_main_frame,  width=1000, height=300, fg_color=FRAME_FG)
+        # NMRGPC_picture_frame_init.grid(row=1, sticky="nsew",
+        #                                      padx=175,
+        #                                      pady=3)
+        NMRGPC_parameter_frame_init = CTkFrame(NMRGPC_main_frame, width=1000, height=350, fg_color=FRAME_FG)
+        NMRGPC_parameter_frame_init.grid(row=3, sticky="ew",
                                                pady=3,
                                                padx=3)
-        NMRGPC_parameter_frame_init.grid(row=3, sticky="ew")
-        NMRGPC_btm_frame_init = tk.Frame(
-            self.tab_NMRGPC_Initialisation, bg='gray', width=1000, height=50, pady=10, padx=400)
-        NMRGPC_btm_frame_init.grid(row=4, sticky="ew")
+        NMRGPC_btm_frame_init = CTkFrame(
+            NMRGPC_main_frame, width=1000, height=50, fg_color=FRAME_FG)
+        NMRGPC_btm_frame_init.grid(row=4, sticky="ew", pady=10, padx=400)
 
         # Make-Up Top Frame in init Tab
-        name_window_init = tk.Label(
-            NMRGPC_top_frame_init, text='Initialisation', bg='white', font=FONTS['FONT_HEADER'])
+        name_window_init = CTkLabel(
+            NMRGPC_top_frame_init, text='Initialisation', font=FONTS['FONT_HEADER'])
         name_window_init.grid()
 
         # Make-Up Parameter_frame_timesweep in ininialisation Tab
-        tsparam = tk.Label(NMRGPC_parameter_frame_init, text="Start Initialisation", bg='gray',
-                           font=FONTS['FONT_HEADER_BOLD'], padx=150)
-        tsparam.grid(row=0, column=1, columnspan=2)
+        # tsparam = CTkLabel(NMRGPC_parameter_frame_init, text="Start Initialisation",
+        #                    font=FONTS['FONT_HEADER_BOLD'])
+        # tsparam.grid(row=0, column=1, columnspan=2, padx=150)
         # Experiment code
-        code_lbl = tk.Label(NMRGPC_parameter_frame_init, text='Experiment Code', bg='gray', width=15,
+        code_lbl = CTkLabel(NMRGPC_parameter_frame_init, text='Experiment Code',  width=15,
                             font=FONTS['FONT_NORMAL'])
-        code_lbl.grid(row=3, column=0)
+        code_lbl.grid(row=3, column=0, padx=20)
 
-        self.code_en = tk.Entry(NMRGPC_parameter_frame_init,
-                                font=FONTS['FONT_ENTRY'], width=30)
-        self.code_en.grid(row=3, column=1)
+        self.code_en = CTkEntry(NMRGPC_parameter_frame_init,
+                                font=FONTS['FONT_ENTRY'])
+        self.code_en.grid(row=3, column=1, columnspan=2, padx=20, pady=30)
 
-        self.labelLabview = tk.Label(NMRGPC_parameter_frame_init,
-                                     text='LABVIEW', font=FONTS['FONT_NORMAL'], bg='gray')
+        self.labelLabview = CTkLabel(NMRGPC_parameter_frame_init,
+                                     text='LABVIEW', font=FONTS['FONT_NORMAL'])
         self.labelLabview.grid(row=5, column=0, columnspan=2)
-        self.confirmlabview = tk.Button(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'],
-                                        command=self.confirmLabview, state='disabled', width=6)
-        self.confirmlabview.grid(row=5, column=3)
-        self.HelpLabview = tk.Button(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'],
+        
+        self.confirmlabview = CTkButton(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'],
+                                        command=self.confirmLabview, state='disabled')
+        self.confirmlabview.grid(row=5, column=3, padx=20)
+        self.HelpLabview = CTkButton(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'],
                                      state='disabled',
-                                     command=self.HelpLabView, width=6)
+                                     command=self.HelpLabView)
         self.HelpLabview.grid(row=5, column=4)
-        self.labelLabviewInfo = tk.Label(
-            NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'], bg='gray')
+        self.labelLabviewInfo = CTkLabel(
+            NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'])
         self.labelLabviewInfo.grid(row=6, column=0, columnspan=2)
 
-        self.labelPss = tk.Label(
-            NMRGPC_parameter_frame_init, text='PSS', font=FONTS['FONT_NORMAL'], bg='gray')
+        self.labelPss = CTkLabel(
+            NMRGPC_parameter_frame_init, text='PSS', font=FONTS['FONT_NORMAL'])
         self.labelPss.grid(row=7, column=0, columnspan=2)
-        self.confirmpss = tk.Button(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'], state='disabled',
-                                    command=self.confirmPss, width=6)
-        self.confirmpss.grid(row=7, column=3)
-        self.Helppss = tk.Button(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'], state='disabled',
-                                 command=self.HelpPss, width=6)
+        self.confirmpss = CTkButton(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'], state='disabled',
+                                    command=self.confirmPss)
+        self.confirmpss.grid(row=7, column=3, padx=20)
+        self.Helppss = CTkButton(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'], state='disabled',
+                                 command=self.HelpPss)
         self.Helppss.grid(row=7, column=4)
-        self.labelPssInfo = tk.Label(
-            NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'], bg='gray')
+        self.labelPssInfo = CTkLabel(
+            NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'])
         self.labelPssInfo.grid(row=8, column=0, columnspan=2)
 
-        self.labelSpinsolve = tk.Label(
-            NMRGPC_parameter_frame_init, text='Spinsolve', font=FONTS['FONT_NORMAL'], bg='gray')
+        self.labelSpinsolve = CTkLabel(
+            NMRGPC_parameter_frame_init, text='Spinsolve', font=FONTS['FONT_NORMAL'])
         self.labelSpinsolve.grid(row=9, column=0, columnspan=2)
-        self.confirmspinsolve = tk.Button(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'],
+        self.confirmspinsolve = CTkButton(NMRGPC_parameter_frame_init, text='OK', font=FONTS['FONT_BOTTON'],
                                           state='disabled',
-                                          command=self.confirmSpinsolve, width=6)
-        self.confirmspinsolve.grid(row=9, column=3)
-        self.Helpspinsolve = tk.Button(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'],
+                                          command=self.confirmSpinsolve)
+        self.confirmspinsolve.grid(row=9, column=3, padx=20)
+        self.Helpspinsolve = CTkButton(NMRGPC_parameter_frame_init, text='Help', font=FONTS['FONT_BOTTON'],
                                        state='disabled',
-                                       command=self.HelpSpinsolve, width=6)
+                                       command=self.HelpSpinsolve)
         self.Helpspinsolve.grid(row=9, column=4)
-        self.labelSpinsolveInfo = tk.Label(
-            NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'], bg='gray')
+        self.labelSpinsolveInfo = CTkLabel(
+            NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'])
         self.labelSpinsolveInfo.grid(row=10, column=0, columnspan=2)
 
-        self.labelEmail = tk.Label(
-            NMRGPC_parameter_frame_init, text='Email', font=FONTS['FONT_NORMAL'], bg='gray')
+        self.labelEmail = CTkLabel(
+            NMRGPC_parameter_frame_init, text='Email', font=FONTS['FONT_NORMAL'])
         self.labelEmail.grid(row=11, column=0, columnspan=1)
-        self.entryEmail = tk.Entry(NMRGPC_parameter_frame_init, text='Email', font=FONTS['FONT_SMALL'],
-                                   state='readonly',
-                                   width=30)
+        self.entryEmail = CTkEntry(NMRGPC_parameter_frame_init, font=FONTS['FONT_SMALL'], ###############################
+                                   state='readonly')
         self.entryEmail.grid(row=11, column=1, columnspan=1)
-        self.confirmEmail = tk.Button(NMRGPC_parameter_frame_init, text='Confirm', font=FONTS['FONT_BOTTON'],
+        self.confirmEmail = CTkButton(NMRGPC_parameter_frame_init, text='Confirm', font=FONTS['FONT_BOTTON'],
                                       state='disabled',
-                                      command=self.confirm_emailadress, width=6)
-        self.confirmEmail.grid(row=11, column=3)
-        self.addEmail = tk.Button(NMRGPC_parameter_frame_init, text='Add', font=FONTS['FONT_BOTTON'], state='disabled',
-                                  command=self.AddEmail, width=6)
+                                      command=self.confirm_emailadress)
+        self.confirmEmail.grid(row=11, column=3, padx=20)
+        self.addEmail = CTkButton(NMRGPC_parameter_frame_init, text='Add', font=FONTS['FONT_BOTTON'], state='disabled',
+                                  command=self.AddEmail)
         self.addEmail.grid(row=11, column=4)
-        self.labelEmailinfo = tk.Label(
-            NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'], bg='gray')
+        self.labelEmailinfo = CTkLabel(
+            NMRGPC_parameter_frame_init, text='', font=FONTS['FONT_SMALL'])
         self.labelEmailinfo.grid(row=12, column=0, columnspan=2)
 
-        self.NMRGPC_confirm_code = tk.Button(NMRGPC_parameter_frame_init, text='OK',
-                                             font=FONTS['FONT_BOTTON'], command=self.confirm_code, width=6)
-        self.NMRGPC_confirm_code.grid(row=4, column=1, columnspan=2)
+        self.NMRGPC_confirm_code = CTkButton(NMRGPC_parameter_frame_init, text='OK',
+                                             font=FONTS['FONT_BOTTON'], command=self.confirm_code)
+        self.NMRGPC_confirm_code.grid(row=3, column=3, padx=20)
 
-        self.start_btn = Button(NMRGPC_btm_frame_init, text='Start',
+        self.start_btn = CTkButton(NMRGPC_btm_frame_init, text='Start',
                                 font=FONTS['FONT_HEADER_BOLD'], state='disabled', command=self.startexp)
         self.start_btn.grid()
 
         # Make-up page
-        top_frame_exp = Frame(self.tab_overview, bg='white',
-                              width=1000, height=50, pady=3, padx=400)
-        parameter_frame_exp = Frame(self.tab_overview, bg='gray',
-                                    width=1000, height=350, pady=3)
-        top_frame_exp.grid(row=0, sticky="ew")
+        top_frame_exp = CTkFrame(self.tab_overview,
+                              width=1000, height=50, fg_color=FRAME_FG)
+        parameter_frame_exp = CTkFrame(self.tab_overview,
+                                    width=1000, height=350, fg_color=FRAME_FG)
+        top_frame_exp.grid(row=0, sticky="ew", pady=3, padx=400)
         parameter_frame_exp.grid(row=1, sticky="ew")
 
         # Make-Up Top Frame in exp Tab
-        name_window_exp = Label(top_frame_exp, text='Experiment',
-                                bg='white', font=FONTS['FONT_HEADER'])
-        name_window_exp.grid()
+        name_window_exp = CTkLabel(top_frame_exp, text='Experiment',
+                                font=FONTS['FONT_HEADER'])
+        name_window_exp.grid(pady=3)
 
     def db_connect(self):
 
@@ -913,10 +972,10 @@ class View(tk.Tk):
             self.experiment_upload_frame_top, text="Connection Status", command=self.db_connect)
         button.grid(row=0, column=3)
 
-        self.label = ttk.Label(self.experiment_upload_frame_top, text="")
+        self.label = CTkLabel(self.experiment_upload_frame_top, text="")
         self.label.grid(row=1, column=3)
 
-        self.label_file_explorer = tk.Label(self.experiment_upload_frame_top,
+        self.label_file_explorer = CTkLabel(self.experiment_upload_frame_top,
                                             text="File path")
         button_explore = ttk.Button(self.experiment_upload_frame_top,
                                     text="Browse Files",
@@ -944,15 +1003,15 @@ class View(tk.Tk):
         self.pop_up_frame_top.geometry("550x750")
         self.pop_up_frame_top.title("Select User for upload")
 
-        pop_up_upload_frame = tk.Frame(
-            self.pop_up_frame_top, bg='white', width=100, height=50, pady=3, padx=100)
-        pop_up_upload_frame.grid()
+        pop_up_upload_frame = CTkFrame(
+            self.pop_up_frame_top, bg_color='white', width=100, height=50)
+        pop_up_upload_frame.grid(pady=3, padx=100)
 
         options = tk.StringVar(pop_up_upload_frame)
         options.set("Choose")  # default value
 
-        user_label = tk.Label(pop_up_upload_frame,  text='User',
-                              font=('Helvetica', 16), width=30, anchor="c")
+        user_label = CTkLabel(pop_up_upload_frame,  text='User',
+                              font=('Helvetica', 16), width=30)      #################
         user_label.grid(row=0, column=0, columnspan=4)
 
         user_options_menu = tk.OptionMenu(
@@ -960,18 +1019,18 @@ class View(tk.Tk):
         user_options_menu.configure(width=30)
         user_options_menu.grid(row=1, column=0)
 
-        self.name_label = tk.Label(pop_up_upload_frame,  text='Experiment Name',
-                                   font=('Helvetica', 16), width=30, anchor="c")
+        self.name_label = CTkLabel(pop_up_upload_frame,  text='Experiment Name',
+                                   font=('Helvetica', 16), width=30)   ########
         self.name_label.grid(row=2, column=0, columnspan=5)
 
-        self.experiment_name_en = tk.Entry(pop_up_upload_frame,
+        self.experiment_name_en = CTkEntry(pop_up_upload_frame,
                                            font=FONTS['FONT_ENTRY'], width=30)
         self.experiment_name_en.grid(row=3, column=0)
 
         self.experiment_name_en.insert(END, self.code_en.get())
 
-        self.monomer_label = tk.Label(pop_up_upload_frame,  text='Monomer Used',
-                                      font=('Helvetica', 16), width=30, anchor="c")
+        self.monomer_label = CTkLabel(pop_up_upload_frame,  text='Monomer Used',
+                                      font=('Helvetica', 16), width=30)      ##########
         self.monomer_label.grid(row=4, column=0, columnspan=5)
 
         self.monomer_value = tk.StringVar(pop_up_upload_frame)
@@ -982,8 +1041,8 @@ class View(tk.Tk):
 
         self.monomer_name_en.grid(row=5, column=0)
 
-        self.CTA_label = tk.Label(pop_up_upload_frame,  text='CTA Used',
-                                  font=('Helvetica', 16), width=30, anchor="c")
+        self.CTA_label = CTkLabel(pop_up_upload_frame,  text='CTA Used',    
+                                  font=('Helvetica', 16), width=30)     ############
         self.CTA_label.grid(row=6, column=0, columnspan=5)
 
         self.CTA_value = tk.StringVar(pop_up_upload_frame)
@@ -995,8 +1054,8 @@ class View(tk.Tk):
 
         self.CTA_en.grid()
         ###
-        self.initiator_label = tk.Label(pop_up_upload_frame,  text='Initiator Used',
-                                        font=('Helvetica', 16), width=30, anchor="c")
+        self.initiator_label = CTkLabel(pop_up_upload_frame,  text='Initiator Used',
+                                        font=('Helvetica', 16), width=30)       ##################
         self.initiator_label.grid(row=8, column=0, columnspan=5)
 
         self.Initiator_value = tk.StringVar(pop_up_upload_frame)
@@ -1009,50 +1068,50 @@ class View(tk.Tk):
         self.Initiator_en.grid()
         ###
 
-        self.CTA_concentration_label = tk.Label(pop_up_upload_frame,  text='Enter CTA Concentration',
-                                                font=('Helvetica', 16), width=30, anchor="c")
+        self.CTA_concentration_label = CTkLabel(pop_up_upload_frame,  text='Enter CTA Concentration',
+                                                font=('Helvetica', 16), width=30)       ################
         self.CTA_concentration_label.grid(row=10, column=0, columnspan=5)
 
-        self.CTA_concentration_en = tk.Entry(pop_up_upload_frame,
+        self.CTA_concentration_en = CTkEntry(pop_up_upload_frame,
                                              font=FONTS['FONT_ENTRY'], width=30)
         self.CTA_concentration_en.grid(row=11, column=0)
 
-        self.Monomer_concentration_label = tk.Label(pop_up_upload_frame,  text='Enter Monomer Concentration',
-                                                    font=('Helvetica', 16), width=30, anchor="c")
+        self.Monomer_concentration_label = CTkLabel(pop_up_upload_frame,  text='Enter Monomer Concentration',
+                                                    font=('Helvetica', 16), width=30)       ###################
         self.Monomer_concentration_label.grid(row=12, column=0, columnspan=5)
 
-        self.Monomer_concentration_en = tk.Entry(pop_up_upload_frame,
+        self.Monomer_concentration_en = CTkEntry(pop_up_upload_frame,
                                                  font=FONTS['FONT_ENTRY'], width=30)
         self.Monomer_concentration_en.grid(row=13, column=0)
 
-        self.Initiator_concentration_label = tk.Label(pop_up_upload_frame,  text='Enter Initiator Concentration',
-                                                      font=('Helvetica', 16), width=30, anchor="c")
+        self.Initiator_concentration_label = CTkLabel(pop_up_upload_frame,  text='Enter Initiator Concentration',
+                                                      font=('Helvetica', 16), width=30)     ############
         self.Initiator_concentration_label.grid(row=14, column=0, columnspan=5)
 
-        self.Initiator_concentration_en = tk.Entry(pop_up_upload_frame,
+        self.Initiator_concentration_en = CTkEntry(pop_up_upload_frame,
                                                    font=FONTS['FONT_ENTRY'], width=30)
         self.Initiator_concentration_en.grid(row=15, column=0)
 
-        self.temperature_label = tk.Label(pop_up_upload_frame,  text='Enter Temperature',
-                                          font=('Helvetica', 16), width=30, anchor="c")
+        self.temperature_label = CTkLabel(pop_up_upload_frame,  text='Enter Temperature',
+                                          font=('Helvetica', 16), width=30)     ###########
         self.temperature_label.grid(row=16, column=0, columnspan=4)
 
-        self.temperature_en = tk.Entry(pop_up_upload_frame,
+        self.temperature_en = CTkEntry(pop_up_upload_frame,
                                        font=FONTS['FONT_ENTRY'], width=30)
         self.temperature_en.grid(row=17, column=0)
-        self.volume_label = tk.Label(pop_up_upload_frame,  text='Volume',
-                                     font=('Helvetica', 16), width=30, anchor="c")
+        self.volume_label = CTkLabel(pop_up_upload_frame,  text='Volume',
+                                     font=('Helvetica', 16), width=30)      ##############
         self.volume_label.grid(row=18, column=0, columnspan=4)
 
-        self.volume_en = tk.Entry(pop_up_upload_frame,
+        self.volume_en = CTkEntry(pop_up_upload_frame,
                                   font=FONTS['FONT_ENTRY'], width=30)
         self.volume_en.grid(row=19, column=0)
 
-        upload_button = tk.Button(pop_up_upload_frame,  text='Add to Database', width=15,
+        upload_button = CTkButton(pop_up_upload_frame,  text='Add to Database', width=15,
                                   command=lambda: self.add_experiment_data())
         upload_button.grid(row=20, column=0)
         self.my_str = tk.StringVar()
-        l5 = tk.Label(pop_up_upload_frame,
+        l5 = CTkLabel(pop_up_upload_frame,
                       textvariable=self.my_str, width=10)
         l5.grid(row=21, column=0)
         self.my_str.set("Output")
@@ -1112,18 +1171,18 @@ class View(tk.Tk):
             self.pop_up_frame_top.destroy()
 
         else:
-            self.temperature_label.config(fg='red')   # foreground color
-            self.temperature_label.config(bg='yellow')  # background color
-            self.volume_label.config(fg='red')   # foreground color
-            self.volume_label.config(bg='yellow')  # background color
-            self.name_label.config(fg='red')
-            self.name_label.config(bg='yellow')
-            self.CTA_concentration_label.config(bg='yellow')
-            self.Monomer_concentration_label.config(fg='red')
-            self.CTA_label.config(bg='yellow')
-            self.CTA_label.config(fg='red')
-            self.monomer_label.config(bg='yellow')
-            self.monomer_label.config(fg='red')
+            self.temperature_label.configure(fg='red')   # foreground color
+            self.temperature_label.configure(bg_color='yellow')  # background color
+            self.volume_label.configure(fg='red')   # foreground color
+            self.volume_label.configure(bg_color='yellow')  # background color
+            self.name_label.configure(fg='red')
+            self.name_label.configure(bg_color='yellow')
+            self.CTA_concentration_label.configure(bg_color='yellow')
+            self.Monomer_concentration_label.configure(fg='red')
+            self.CTA_label.configure(bg_color='yellow')
+            self.CTA_label.configure(fg='red')
+            self.monomer_label.configure(bg_color='yellow')
+            self.monomer_label.configure(fg='red')
             self.my_str.set("check inputs.")
 
     def _get_user_names(self):
@@ -1511,6 +1570,9 @@ class View(tk.Tk):
 
     def AddEmail(self):
         return
+
+    def button_spacing(self, button):
+        button.pack(pady=(0, 10))
 
     def Confirm_reactor_parameters(self):
         logger.info('Reactor parameters confirmed')

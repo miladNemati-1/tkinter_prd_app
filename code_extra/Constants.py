@@ -19,7 +19,7 @@ SETUP_DEFAULT_VALUES_NMR = [['entry1', 'default1', 'Reactor Volume', 'mL', 0.90,
                             ['entry8', 'default8', 'Dilution Flowrate', 'mL/min', 1.5, 'change8']]
 
 FONTS = {'FONT_NORMAL': ('Ariel', 15),
-         'FONT_HEADER': ('Courier', 30),
+         'FONT_HEADER': ('Ariel', 30),
          'FONT_BOTTON': ('Ariel', 10),
          'FONT_HEADER_BOLD': ('Ariel', 18, 'bold'),
          'FONT_ENTRY': ('Ariel', 17),
@@ -40,10 +40,10 @@ TIMESWEEP_PARAMETERS = pd.DataFrame(columns=col_names_parameters)
 
 # MAC
 # DRIVE = 'S'
-FOLDERS = {'COMMUNICATION': '/Users/miladnemati/Desktop/NMR',
-           'GPC': '/Users/miladnemati/Desktop/NMR',
-           'NMR': '/Users/miladnemati/Desktop/NMR',
-           'Results': '/Users/miladnemati/Desktop/NMR'}
+FOLDERS = {'COMMUNICATION': '/Users/arshi/OneDrive/Desktop/NMR',
+           'GPC': '/Users/arshi/OneDrive/Desktop/NMR',
+           'NMR': '/Users/arshi/OneDrive/Desktop/NMR',
+           'Results': '/Users/arshi/OneDrive/Desktop/NMR'}
 
 Monomer_Conversion = {"BA": {"monomer peak": 3, "polymer peak": 2}, "EA": {"monomer peak": 3, "polymer peak": 2}, "MA": {
     "monomer peak": 3, "polymer peak": 3}, "MMA": {"monomer peak": 2, "polymer peak": 3}}
