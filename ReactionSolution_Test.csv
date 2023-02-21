@@ -1,0 +1,5 @@
+,class,name,abbreviation,molecular mass,density,mass (g),volume (mL),moles (mol),Molar (M),eq
+0,RAFT,2-(Dodecylthiocarbonothioylthio)propionic acid,DoPAT,350.6,,0.35,,0.0009982886480319451,0.09982886480319451,1.0
+1,monomer,Methyl Acrylate,MA,86.09,0.95,3.3249999999999997,3.5,0.03862237193634568,3.862237193634568,38.68858171680799
+2,initiator,Azobisisobutyronitrile,AIBN,164.21,,0.007,,4.262834175750563e-05,0.004262834175750563,0.042701418914804216
+3,solvent,Dimethyl sulfoxide,DMSO,78.13,1.1,7.15,6.5,0.09151414309484195,9.151414309484194,91.67102448300454
