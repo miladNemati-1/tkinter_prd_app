@@ -57,39 +57,11 @@ Once the reaction is finalised the pop ups above will be created which then the 
 - Tkinter
 - Plotly
 - Matplotlib
-- HTML
-- CSS
 - SyringePump
 - Numpy
 - MySQL
 - sqlAlchemy
 - regex
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-## Usage
-
-![Graph_Formula.png](https://github.com/miladNemati-1/tkinter_prd_app/blob/main/images/Welcome_Screen.png?raw=true)
-
-The platform interacts with a large chemical database for use in data visualisations of different systems. These visualisations can be customised by the user to generate any combination of data they require and they are able to mathematically modify these graphs.
-
-![Graph_Formula.png](https://github.com/miladNemati-1/django_prd_website/blob/main/images/Graph_Formula.png?raw=true)
-
-![Example_Kinetic_Calc.png](https://github.com/miladNemati-1/django_prd_website/blob/main/images/Example_Kinetic_Calc.png?raw=true)
-
-![All_Rate_Views.png](https://github.com/miladNemati-1/django_prd_website/blob/main/images/All_rate_views.png?raw=true)
-
-The website also dynamically creates descision trees based on data in the database and a set of parameters relating to polymerization reactions. The user can than use these models to get predictions of their next reactions. however the Error is still very high and optimization is needed for future work
-
-![All_Rate_Views.png](https://github.com/miladNemati-1/django_prd_website/blob/main/images/Models_Input.png?raw=true)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-The website also features other administrative tools such as a chemical management system and online lab equipment and chemical search
-
-![Online_Search.png](https://github.com/miladNemati-1/django_prd_website/blob/main/images/Online_Search.png?raw=true)
-
-![My_Lab.png](https://github.com/miladNemati-1/django_prd_website/blob/main/images/My_Lab.png?raw=true)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 ## License
