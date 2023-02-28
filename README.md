@@ -40,7 +40,7 @@ The user can then choose the time of the reaction they want to run their reactio
 
 The user can then choose how they want their conversions to be calculated based on the conversion screen paramaters and their chosen monomers
 
-![Final.png](https://github.com/miladNemati-1/tkinter_prd_app/blob/main/images/Final.png?raw=true)
+![final.png](https://github.com/miladNemati-1/tkinter_prd_app/blob/main/images/final.png?raw=true)
 
 Finally the user initialises their reaction by giving their reaction a name and following the instructions.
 
