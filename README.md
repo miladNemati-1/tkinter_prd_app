@@ -26,7 +26,7 @@
 
 ## About The Project
 
-![All_Vis_Screenshot.png](https://github.com/miladNemati-1/tkinter-prd-app/blob/main/images/Welcome_Screen.jpeg?raw=true)
+![All_Vis_Screenshot.png](https://github.com/miladNemati-1/tkinter_prd_app/blob/main/images/Welcome_Screen.jpeg?raw=true)
 
 This is a desktop application and reaction automation platform created by the Polymer Reaction Design Group at Monash University. It is a program written in python that using certain inputted parameters automates polymerization reactions through pumps and uses analytical instruments such as HNMR and GPC for collecting relevant polymerization data. It features functionalities such as timesweep reactions, database upload for data visualisation, pump control and data cleaning.
 
