@@ -3,7 +3,7 @@
 <a name="readme-top"></a>
 
 <p align="center">
-  <img width="460" height="300" src="https://github.com/miladNemati-1/tkinter-prd-app/blob/main/images/prd-400.jpeg?raw=true">
+  <img width="460" height="300" src="https://github.com/miladNemati-1/tkinter_prd_app/blob/main/images/prd-400.jpeg?raw=true">
 </p>
 
   <h3 align="center">An Automated Polymerization Platform Software</h3>
